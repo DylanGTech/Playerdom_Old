@@ -388,7 +388,7 @@ namespace Playerdom.Shared.Services
                 }
             }
 
-            for(int i = 0; i < 32; i++)
+            for (int i = 0; i < 32; i++)
                 GenerateRandomRiver(m, r);
 
             int numPaths = r.Next(24, 32);
@@ -419,7 +419,7 @@ namespace Playerdom.Shared.Services
                         GenerateLine(m, new Point(p0.X, p0.Y + i), new Point(p1.X, p1.Y + i), 3, 0);
                     }
                 }
-                else if(p1.Y != p0.Y && (p1.X - p0.X) / (p1.Y - p0.Y) < 1)
+                else if (p1.Y != p0.Y && (p1.X - p0.X) / (p1.Y - p0.Y) < 1)
                 {
                     wx = (thickness - 1) * Math.Sqrt(Math.Pow((p1.X - p0.X), 2) + Math.Pow((p1.Y - p0.Y), 2)) / (2 * Math.Abs(p1.Y - p0.Y));
 
@@ -431,9 +431,9 @@ namespace Playerdom.Shared.Services
                 }
             }
 
-            for(int i = 0; i < endPoints.Count; i++)
+            for (int i = 0; i < endPoints.Count; i++)
             {
-                if(i % 2 == 1)
+                if (i % 2 == 1)
                 {
                     int pathOffsetX = r.Next(-5, 5);
                     int pathOffsetY = r.Next(-5, 5);
@@ -447,7 +447,7 @@ namespace Playerdom.Shared.Services
 
             int numRandomEnemies = 96;
 
-            for(int i = 0; i < numRandomEnemies; i++)
+            for (int i = 0; i < numRandomEnemies; i++)
             {
                 m.gameObjects.Add(Guid.NewGuid(), new Enemy(new Point(r.Next(0, (int)Map.SIZE_X - 1) * (int)Tile.SIZE_X, r.Next(0, (int)Map.SIZE_Y - 1) * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
             }
@@ -484,7 +484,7 @@ namespace Playerdom.Shared.Services
                 {
                     if (m.tiles[position.X + x, position.Y + y].typeID == 4)
                         return;
-                    else if(m.tiles[position.X + x, position.Y + y].typeID == 3
+                    else if (m.tiles[position.X + x, position.Y + y].typeID == 3
                         || m.tiles[position.X + x, position.Y + y].typeID == 2)
                     {
                         numRemovedBlocks++;
@@ -492,14 +492,14 @@ namespace Playerdom.Shared.Services
                 }
             }
 
-            if(numRemovedBlocks > sizeX * sizeY * 0.6)
+            if (numRemovedBlocks > sizeX * sizeY * 0.6)
 
                 for (int y = 0; y < sizeY; y++)
-            {
-                for (int x = 0; x < sizeX; x++)
                 {
-                    if (x == 0 || y == 0 || x == sizeX - 1 || y == sizeY - 1)
+                    for (int x = 0; x < sizeX; x++)
                     {
+                        if (x == 0 || y == 0 || x == sizeX - 1 || y == sizeY - 1)
+                        {
                             if (m.tiles[position.X + x, position.Y + y].typeID == 2 ||
                                 m.tiles[position.X + x, position.Y + y].typeID == 3)
                             {
@@ -511,21 +511,21 @@ namespace Playerdom.Shared.Services
                                 m.tiles[position.X + x, position.Y + y].typeID = 2;
                                 m.tiles[position.X + x, position.Y + y].variantID = 0;
                             }
-                    }
-                    else
-                    {
-                        m.tiles[position.X + x, position.Y + y].typeID = 3;
-                        m.tiles[position.X + x, position.Y + y].variantID = 0;
+                        }
+                        else
+                        {
+                            m.tiles[position.X + x, position.Y + y].typeID = 3;
+                            m.tiles[position.X + x, position.Y + y].variantID = 0;
+                        }
                     }
                 }
-            }
 
 
             int cornerOffset = sizeX < sizeY ? r.Next(1, (int)sizeX - 2) : r.Next(1, (int)sizeY - 2);
 
             for (int i = 0; i < numDoors; i++)
             {
-                switch(r.Next(0,4))
+                switch (r.Next(0, 4))
                 {
                     //Top
                     case 0:
@@ -735,7 +735,6 @@ namespace Playerdom.Shared.Services
 
 
         }
-        
 
         private static void AddStructure(Map m, Point position, string structureFileName)
         {
@@ -754,8 +753,8 @@ namespace Playerdom.Shared.Services
                 folder = Task.Run(async () => await Package.Current.InstalledLocation.GetFolderAsync("Content")).Result;
                 folder = Task.Run(async () => await folder.GetFolderAsync("Structures")).Result;
                 StorageFile file = Task.Run(async () => await folder.GetFileAsync(structureFileName)).Result;
-                br = new BinaryReader(Task.Run(async() => await file.OpenReadAsync()).Result.AsStreamForRead());
-//#elif WINDOWS
+                br = new BinaryReader(Task.Run(async () => await file.OpenReadAsync()).Result.AsStreamForRead());
+                //#elif WINDOWS
 #else
                 string path = AppDomain.CurrentDomain.BaseDirectory + "\\Content\\Structures\\" + structureFileName;
                 br = new BinaryReader(new FileStream(path, FileMode.Open));
@@ -889,6 +888,12 @@ namespace Playerdom.Shared.Services
 
 
         }
+    }
 
+    public class MapColumn
+    {
+        public int columnNumber;
+        public ushort[] typesColumn = new ushort[Map.SIZE_X];
+        public byte[] variantsColumn = new byte[Map.SIZE_X];
     }
 }

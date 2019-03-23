@@ -18,9 +18,11 @@ using Timer = System.Timers.Timer;
 using System.Net;
 using System.Reflection;
 using Ceras;
-using LiteNetLib;
+//using LiteNetLib;
 using System.Text;
 using Newtonsoft.Json;
+using System.Net.Sockets;
+using Ceras.Helpers;
 
 #if WINDOWS_UAP
 using Windows.Storage;
@@ -58,9 +60,15 @@ namespace Playerdom.Shared
         SpriteFont font;
         SpriteFont font2;
 
+        static TcpClient _tcpClient;
+        static NetworkStream _netStream;
+        static CerasSerializer _sendCeras;
+        static CerasSerializer _receiveCeras;
+
+
         List<ButtonObject> buttons = new List<ButtonObject>();
 
-        KeyValuePair<Guid, GameObject> focusedObject = new KeyValuePair<Guid, GameObject>(Guid.Empty, null);
+        static KeyValuePair<Guid, GameObject> focusedObject = new KeyValuePair<Guid, GameObject>(Guid.Empty, null);
 
         const string WATERMARK = "Playerdom Test - Copyright 2019 Dylan Green";
 
@@ -80,10 +88,10 @@ namespace Playerdom.Shared
 #endif
             this.IsMouseVisible = true;
             Content.RootDirectory = "Content";
-        }
 
-        EventBasedNetListener listener;
-        NetManager client;
+            _tcpClient = new TcpClient();
+
+        }
 
         /// <summary>
         /// Allows the game to perform any initialization it needs to before starting to run.
@@ -121,230 +129,22 @@ namespace Playerdom.Shared
             catch (Exception e)
             {
                 File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "\\connection.txt", ip);
-                ip = DEFAULT_IP;
+                ip = "localhost";
             }
 #endif
+            _tcpClient = new TcpClient();
+            _tcpClient.Connect("localhost", 25565);
+            _netStream = _tcpClient.GetStream();
 
-            NetPeer np = null;
+            _sendCeras = new CerasSerializer(PlayerdomCerasSettings.config);
+            _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.config);
+
             level = new Map();
 
+            level.tiles = new Tile[Map.SIZE_X, Map.SIZE_Y];
 
-            try
-            {
-                listener = new EventBasedNetListener();
-                client = new NetManager(listener);
-                client.Start();
-                client.Connect(ip, 25565, "Test");
+            new Thread(() => ReceiveOutputAsync()).Start();
 
-
-                level.tiles = new Tile[Map.SIZE_X, Map.SIZE_Y];
-
-                listener.NetworkReceiveEvent += (fromPeer, dataReader, deliveryMethod) =>
-                {
-                    CerasSerializer serializer = new CerasSerializer(PlayerdomCerasSettings.config);
-                    if (np == null) np = fromPeer;
-
-                    string s = dataReader.GetString();
-                    switch (s)
-                    {
-                        default:
-                            break;
-                        case "FocusedObject":
-                            //Guid g = JsonConvert.DeserializeObject<Guid>(dataReader.GetString(), PlayerdomJsonSettings.jsonSettings);
-                            Guid g = serializer.Deserialize<Guid>(dataReader.GetBytesWithLength());
-                            //Guid g = serializer.Deserialize<Guid>(dataReader.GetBytesWithLength());
-
-
-                            //GameObject go = JsonConvert.DeserializeObject<GameObject>(s1, PlayerdomJsonSettings.jsonSettings);
-                            GameObject go = serializer.Deserialize<GameObject>(dataReader.GetBytesWithLength());
-                            //GameObject go = serializer.Deserialize<GameObject>(dataReader.GetBytesWithLength());
-
-
-                            if (level.gameObjects.TryGetValue(g, out GameObject ogo))
-                            {
-                                level.gameObjects[g] = go;
-                                focusedObject = new KeyValuePair<Guid, GameObject>(g, level.gameObjects[g]);
-                                ogo.Dispose();
-                            }
-                            else
-                            {
-                                focusedObject = new KeyValuePair<Guid, GameObject>(g, go);
-                                level.gameObjects.Add(focusedObject.Key, focusedObject.Value);
-                            }
-                            break;
-
-                        case "AllObjects":
-
-                            Dictionary<Guid, GameObject> initialObjects = serializer.Deserialize<Dictionary<Guid, GameObject>>(dataReader.GetBytesWithLength());
-
-
-                            Dictionary<Guid, GameObject> copyO = new Dictionary<Guid, GameObject>();
-                            foreach (KeyValuePair<Guid, GameObject> kvp in level.gameObjects)
-                            {
-                                copyO.Add(kvp.Key, kvp.Value);
-                            }
-                            foreach (KeyValuePair<Guid, GameObject> o in copyO)
-                            {
-                                if (initialObjects.TryGetValue(o.Key, out GameObject obj))
-                                {
-                                    level.gameObjects[o.Key].UpdateStats(obj);
-                                }
-                                else
-                                {
-                                    level.gameObjects[o.Key].Dispose();
-                                    level.gameObjects.Remove(o.Key);
-                                }
-                            }
-
-                            foreach (KeyValuePair<Guid, GameObject> o in initialObjects)
-                            {
-                                if (!level.gameObjects.TryGetValue(o.Key, out GameObject obj))
-                                {
-                                    level.gameObjects.Add(o.Key, o.Value);
-                                }
-                            }
-
-                            break;
-
-                        case "Objects":
-
-
-
-                            Dictionary<Guid, GameObject> newObjects = serializer.Deserialize<Dictionary<Guid, GameObject>>(dataReader.GetBytesWithLength());
-
-                            foreach (KeyValuePair<Guid, GameObject> kvp in newObjects)
-                            {
-                                if(!level.gameObjects.ContainsKey(kvp.Key))
-                                {
-                                    level.gameObjects.Add(kvp.Key, kvp.Value);
-                                }
-                            }
-
-                            Dictionary<Guid, Dictionary<string, byte[]>> objectDeltas = serializer.Deserialize<Dictionary<Guid, Dictionary<string, byte[]>>>(dataReader.GetBytesWithLength());
-                            foreach (KeyValuePair<Guid, Dictionary<string, byte[]>> kvp in objectDeltas)
-                            {
-                                if(level.gameObjects.ContainsKey(kvp.Key))
-                                {
-                                    level.gameObjects[kvp.Key].ApplyDelta(kvp.Value, serializer);
-                                }
-                            }
-
-
-                                break;
-
-                        case "Entities":
-                            //Dictionary<Guid, Entity> newEntities = JsonConvert.DeserializeObject<Dictionary<Guid, Entity>>(dataReader.GetString(), PlayerdomJsonSettings.jsonSettings);
-                            Dictionary<Guid, Entity> newEntities = serializer.Deserialize<Dictionary<Guid, Entity>>(dataReader.GetBytesWithLength());
-                            //Dictionary<Guid, Entity> newEntities = serializer.Deserialize<Dictionary<Guid, Entity>>(dataReader.GetBytesWithLength());
-
-
-                            Dictionary<Guid, Entity> copyE = new Dictionary<Guid, Entity>();
-                            foreach (KeyValuePair<Guid, Entity> kvp in level.gameEntities)
-                            {
-                                copyE.Add(kvp.Key, (Entity)kvp.Value);
-                            }
-                            foreach (KeyValuePair<Guid, Entity> e in copyE)
-                            {
-                                if (newEntities.TryGetValue(e.Key, out Entity ent))
-                                {
-                                        level.gameEntities[e.Key].UpdateStats(ent);
-                                }
-                                else
-                                {
-                                    level.gameEntities[e.Key].Dispose();
-                                    level.gameEntities.Remove(e.Key);
-                                }
-                            }
-
-                            foreach (KeyValuePair<Guid, Entity> e in newEntities)
-                            {
-                                if (!level.gameEntities.TryGetValue(e.Key, out Entity ent))
-                                {
-                                    level.gameEntities.Add(e.Key, e.Value);
-                                }
-                            }
-
-
-                            break;
-
-                        case "Tiles":
-
-                            int column = dataReader.GetInt();
-
-
-                            for(int i = 0; i < 32; i++)
-                            {
-                                //int length = 0;
-                                //byte[] compressedColumn = null;
-
-
-                                //length = dataReader.GetInt();
-                                //compressedColumn = new byte[length];
-                                //dataReader.GetBytes(compressedColumn, length);
-                                //ushort[] typesColumn = serializer.Deserialize<ushort[]>(compressedColumn);
-
-
-                                //length = dataReader.GetInt();
-                                //compressedColumn = new byte[length];
-                                //dataReader.GetBytes(compressedColumn, length);
-                                //byte[] variantsColumn = serializer.Deserialize<byte[]>(compressedColumn);
-
-                                ushort[] typesColumn = dataReader.GetUShortArray();
-                                byte[] variantsColumn = dataReader.GetBytesWithLength();
-
-                                for (int j = 0; j < Map.SIZE_Y; j++)
-                                {
-                                    level.tiles[column + i, j].typeID = typesColumn[j];
-                                    level.tiles[column + i, j].variantID = variantsColumn[j];
-                                }
-                            }
-
-                            NetDataWriter writer = new NetDataWriter();
-                            writer.Put("MapAffirmation");
-                            fromPeer.Send(writer, DeliveryMethod.ReliableOrdered);
-
-
-
-                            break;
-                    }
-
-                    if (np != null)
-                    {
-                        NetDataWriter writer = new NetDataWriter();
-
-                        byte[] buffer = null;
-                        int length = 0;
-                        try
-                        {
-                            writer.Put("Input");
-                            //length = serializer.Serialize(Keyboard.GetState().GetPressedKeys(), ref buffer);
-                            //writer.PutBytesWithLength(buffer, 0, length);
-                            //np.Send(writer, DeliveryMethod.ReliableOrdered);
-
-                            writer.Put(JsonConvert.SerializeObject(Keyboard.GetState().GetPressedKeys(), PlayerdomJsonSettings.jsonSettings));
-
-
-                            fromPeer.Send(writer, DeliveryMethod.ReliableOrdered);
-                        }
-                        catch (Exception exc)
-                        {
-                            LogException(exc);
-#if WINDOWS_UAP
-                            CoreApplication.Exit();
-#elif WINDOWS
-                            Exit();
-#endif
-                        }
-                    }
-
-                    dataReader.Recycle();
-                };
-
-
-                listener.NetworkErrorEvent += (endPoint, socketError) =>
-                {
-                    throw new Exception(socketError.ToString());
-                };
 
                 Stopwatch connectionWatch = new Stopwatch();
                 byte attempts = 0;
@@ -362,102 +162,8 @@ namespace Playerdom.Shared
                         attempts++;
                         connectionWatch.Restart();
                     }
-
-                    client.PollEvents();
                 }
                 connectionWatch.Stop();
-
-                /*
-                Timer t = new Timer(15);
-
-                t.Elapsed += (object sender, ElapsedEventArgs e) =>
-                {
-                    CerasSerializer serializer = new CerasSerializer(PlayerdomCerasSettings.config);
-                    if (np != null)
-                    {
-                        NetDataWriter writer = new NetDataWriter();
-
-                        byte[] buffer = null;
-                        int length = 0;
-                        try
-                        {
-                            writer.Put("Input");
-                            length = serializer.Serialize(Keyboard.GetState().GetPressedKeys(), ref buffer);
-                            writer.PutBytesWithLength(buffer, 0, length);
-                            np.Send(writer, DeliveryMethod.ReliableOrdered);
-                        }
-                        catch(Exception exc)
-                        {
-                            LogException(exc);
-#if WINDOWS_UAP
-                CoreApplication.Exit();
-#elif WINDOWS
-                            Exit();
-#endif
-                        }
-                    }
-                };
-
-                t.Start();
-                */
-            }
-            catch(Exception e)
-            {
-
-                LogException(e);
-#if WINDOWS_UAP
-                CoreApplication.Exit();
-#elif WINDOWS
-                Exit();
-#endif
-            }
-            /*
-            try
-            {
-                level = LoadMap("World");
-            }
-            catch(Exception e)
-            {
-                level = MapService.CreateMap("World");
-            }
-
-            if (level == null)
-                level = MapService.CreateMap("World");
-
-
-            foreach (GameObject g in level.gameObjects)
-            {
-                if(g.GetType() == typeof(Player))
-                {
-                    focusedObject = g as Player;
-                }
-            }
-            buttons.Add(new ButtonObject(new Vector2(0, 0), new Vector2(256, 64), "New World",
-                () =>
-                {
-                    level = MapService.CreateMap("World");
-                    Task.Run(() => MapService.SaveMapAsync(level)).Wait();
-
-                    foreach (GameObject g in level.gameObjects)
-                    {
-                        if (g.GetType() == typeof(Player))
-                        {
-                            focusedObject = g as Player;
-                        }
-                    }
-                }, GuiAnchorPoint.TopLeft,
-                GraphicsDevice, Color.LightGray, Color.Black, Color.Gray, 3));
-
-
-            buttons.Add(new ButtonObject(new Vector2(0, 64), new Vector2(256, 64), "Save World",
-                () =>
-                {
-                    Task.Run(async () => await MapService.SaveMapAsync(level)).Wait();
-                }, GuiAnchorPoint.TopLeft,
-                GraphicsDevice, Color.LightGray, Color.Black, Color.Gray, 3));
-
-            */
-
 
             base.Initialize();
         }
@@ -527,71 +233,6 @@ namespace Playerdom.Shared
         {
             try
             {
-
-                client.PollEvents();
-
-
-                /*
-                KeyboardState ks = Keyboard.GetState();
-                if(ks.IsKeyDown(Keys.Tab))
-                {
-                    isHoldingTab = true;
-                }
-                else if(isHoldingTab)
-                {
-                    isHoldingTab = false;
-                    Task.Run(() => MapService.SaveMapAsync(level));
-                }
-
-                for(int i = level.gameEntities.Count - 1; i >= 0; i--)
-                {
-                    level.gameEntities[i].Update(gameTime, level);
-                }
-                for (int i = level.gameObjects.Count - 1; i >= 0; i--)
-                {
-                    level.gameObjects[i].Update(gameTime, level);
-                }
-
-
-
-
-                for (int object1 = 0; object1 < level.gameObjects.Count; object1++)
-                {
-                    for (int object2 = 0;  object2 < level.gameObjects.Count; object2++)
-                    {
-                        if (!object.ReferenceEquals(level.gameObjects[object1], level.gameObjects[object2]))
-                        {
-                            if(level.gameObjects[object1].CheckCollision(level.gameObjects[object2]))
-                            {
-                                level.gameObjects[object1].HandleCollision(level.gameObjects[object1], level);
-                                level.gameObjects[object2].HandleCollision(level.gameObjects[object1], level);
-                            }
-                        }
-                    }
-                }
-
-                for(int i = level.gameObjects.Count - 1; i >= 0; i--)
-                {
-                    for (int j = level.gameEntities.Count - 1; j >= 0; j--)
-                    {
-                        Vector2 depth = CollisionService.GetIntersectionDepth(level.gameObjects[i].BoundingBox, level.gameEntities[j].BoundingBox);
-
-                        if (depth.X != 0 && depth.Y != 0)
-                        {
-                            level.gameObjects[i].HandleCollision(level.gameEntities[j], level);
-                        }
-
-                    }
-                }
-
-
-
-                foreach(ButtonObject b in buttons)
-                {
-                    b.Update(gameTime);
-                }
-
-        */
                 base.Update(gameTime);
             }
             catch(Exception e)
@@ -739,6 +380,115 @@ namespace Playerdom.Shared
 #elif WINDOWS
                 File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "\\" + e.GetType().ToString() + ".txt", e.StackTrace);
 #endif
+        }
+
+        static async void ReceiveOutputAsync()
+        {
+
+            while (true)
+            {
+                var obj = await _receiveCeras.ReadFromStream(_netStream);
+
+
+
+                if (obj is KeyValuePair<Guid, GameObject>)
+                {
+
+
+                    if (level.gameObjects.TryGetValue(((KeyValuePair<Guid, GameObject>)obj).Key, out GameObject ogo))
+                    {
+                        level.gameObjects[((KeyValuePair<Guid, GameObject>)obj).Key] = ((KeyValuePair<Guid, GameObject>)obj).Value;
+                        focusedObject = (KeyValuePair<Guid, GameObject>)obj;
+                        ogo.Dispose();
+                    }
+                    else
+                    {
+                        focusedObject = (KeyValuePair<Guid, GameObject>)obj;
+                        level.gameObjects.Add(focusedObject.Key, focusedObject.Value);
+                    }
+                }
+                else if (obj is Dictionary<Guid, GameObject>)
+                {
+
+                    Dictionary<Guid, GameObject> initialObjects = obj as Dictionary<Guid, GameObject>;
+
+
+                    Dictionary<Guid, GameObject> copyO = new Dictionary<Guid, GameObject>();
+                    foreach (KeyValuePair<Guid, GameObject> kvp in level.gameObjects)
+                    {
+                        copyO.Add(kvp.Key, kvp.Value);
+                    }
+                    foreach (KeyValuePair<Guid, GameObject> o in copyO)
+                    {
+                        if (initialObjects.TryGetValue(o.Key, out GameObject gobj))
+                        {
+                            level.gameObjects[o.Key].UpdateStats(gobj);
+                        }
+                        else
+                        {
+                            level.gameObjects[o.Key].Dispose();
+                            level.gameObjects.Remove(o.Key);
+                        }
+                    }
+
+                    foreach (KeyValuePair<Guid, GameObject> o in initialObjects)
+                    {
+                        if (!level.gameObjects.TryGetValue(o.Key, out GameObject gobj))
+                        {
+                            level.gameObjects.Add(o.Key, o.Value);
+                        }
+                    }
+                }
+                else if (obj is Dictionary<Guid, Entity>)
+                {
+                    Dictionary<Guid, Entity> newEntities = obj as Dictionary<Guid, Entity>;
+
+
+                    Dictionary<Guid, Entity> copyE = new Dictionary<Guid, Entity>();
+                    foreach (KeyValuePair<Guid, Entity> kvp in level.gameEntities)
+                    {
+                        copyE.Add(kvp.Key, (Entity)kvp.Value);
+                    }
+                    foreach (KeyValuePair<Guid, Entity> e in copyE)
+                    {
+                        if (newEntities.TryGetValue(e.Key, out Entity ent))
+                        {
+                            level.gameEntities[e.Key].UpdateStats(ent);
+                        }
+                        else
+                        {
+                            level.gameEntities[e.Key].Dispose();
+                            level.gameEntities.Remove(e.Key);
+                        }
+                    }
+
+                    foreach (KeyValuePair<Guid, Entity> e in newEntities)
+                    {
+                        if (!level.gameEntities.TryGetValue(e.Key, out Entity ent))
+                        {
+                            level.gameEntities.Add(e.Key, e.Value);
+                        }
+                    }
+
+
+                }
+                else if(obj is MapColumn[])
+                {
+                    MapColumn[] colArray = (MapColumn[])obj;
+
+                    for (int i = 0; i < 32; i++)
+                    {
+
+                        for (int j = 0; j < Map.SIZE_Y; j++)
+                        {
+                            level.tiles[colArray[i].columnNumber, j].typeID = colArray[i].typesColumn[j];
+                            level.tiles[colArray[i].columnNumber, j].variantID = colArray[i].variantsColumn[j];
+                        }
+                    }
+                }
+
+                _sendCeras.WriteToStream(_netStream, "MapAffrimation");
+            }
         }
 
     }

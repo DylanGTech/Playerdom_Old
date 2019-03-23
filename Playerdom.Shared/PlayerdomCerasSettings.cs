@@ -19,6 +19,7 @@ namespace Playerdom.Shared
 
         public static void Initialize()
         {
+            /*
             config.KnownTypes.Add(typeof(GameObject));
             config.KnownTypes.Add(typeof(Player));
             config.KnownTypes.Add(typeof(Enemy));
@@ -53,6 +54,10 @@ namespace Playerdom.Shared
             config.ConfigType<Enemy>().ConstructBy(typeof(Enemy).GetConstructors()[0]);
             config.ConfigType<Townsman>().ConstructBy(typeof(Townsman).GetConstructors()[0]);
             config.ConfigType<Bullet>().ConstructBy(typeof(Bullet).GetConstructors()[0]);
+
+            */
+
+            config.Advanced.PersistTypeCache = true;
         }
     }
 }
