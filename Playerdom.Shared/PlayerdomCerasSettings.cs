@@ -7,6 +7,7 @@ using System.Text;
 using System.Reflection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Playerdom.Shared.Services;
 
 namespace Playerdom.Shared
 {
@@ -19,7 +20,7 @@ namespace Playerdom.Shared
 
         public static void Initialize()
         {
-            /*
+            
             config.KnownTypes.Add(typeof(GameObject));
             config.KnownTypes.Add(typeof(Player));
             config.KnownTypes.Add(typeof(Enemy));
@@ -35,6 +36,7 @@ namespace Playerdom.Shared
             config.KnownTypes.Add(typeof(Point));
             config.KnownTypes.Add(typeof(Guid));
             config.KnownTypes.Add(typeof(Keys));
+            config.KnownTypes.Add(typeof(Keys[]));
 
 
 
@@ -44,18 +46,23 @@ namespace Playerdom.Shared
             config.KnownTypes.Add(typeof(ObjectType));
             config.KnownTypes.Add(typeof(DirectionX));
             config.KnownTypes.Add(typeof(DirectionY));
+            config.KnownTypes.Add(typeof(MapColumn));
+            config.KnownTypes.Add(typeof(MapColumn[]));
+            config.KnownTypes.Add(typeof(KeyValuePair<Guid, GameObject>));
+            config.KnownTypes.Add(typeof(Dictionary<Guid, GameObject>));
+            config.KnownTypes.Add(typeof(Dictionary<Guid, Entity>));
             //config.KnownTypes.Add(typeof(Dictionary<Guid, GameObject>));
             //config.KnownTypes.Add(typeof(Dictionary<Guid, Entity>));
             //config.KnownTypes.Add(typeof(Dictionary<string, object>));
             //config.KnownTypes.Add(typeof(Dictionary<Guid, Dictionary<string, object>>));
 
+            config.KnownTypes.Add(typeof(KeyboardState));
 
             config.ConfigType<Player>().ConstructBy(typeof(Player).GetConstructors()[0]);
             config.ConfigType<Enemy>().ConstructBy(typeof(Enemy).GetConstructors()[0]);
             config.ConfigType<Townsman>().ConstructBy(typeof(Townsman).GetConstructors()[0]);
             config.ConfigType<Bullet>().ConstructBy(typeof(Bullet).GetConstructors()[0]);
-
-            */
+            config.ConfigType<MapColumn>().ConstructBy(typeof(MapColumn).GetConstructors()[0]);
 
             config.Advanced.PersistTypeCache = true;
         }

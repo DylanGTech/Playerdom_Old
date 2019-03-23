@@ -892,8 +892,15 @@ namespace Playerdom.Shared.Services
 
     public class MapColumn
     {
-        public int columnNumber;
-        public ushort[] typesColumn = new ushort[Map.SIZE_X];
-        public byte[] variantsColumn = new byte[Map.SIZE_X];
+        public MapColumn(int columnNumber, ushort[] typesColumn, byte[] variantsColumn)
+        {
+            ColumnNumber = columnNumber;
+            TypesColumn = typesColumn;
+            VariantsColumn = variantsColumn;
+        }
+
+        public int ColumnNumber { get; set; }
+        public ushort[] TypesColumn { get; set; }
+        public byte[] VariantsColumn { get; set; }
     }
 }

@@ -27,9 +27,10 @@ namespace Playerdom.Server
     {
 
         public static List<ServerClient> leavingPlayers = new List<ServerClient>();
+        public static Map level = new Map();
+        public static List<ServerClient> clients = new List<ServerClient>();
 
-
-        static void AcceptClients(Map m, List<ServerClient> c)
+        static void AcceptClients()
         {
             TcpListener listener = new TcpListener(IPAddress.Loopback, 25565);
             listener.Start();
@@ -38,13 +39,13 @@ namespace Playerdom.Server
             {
                 TcpClient tcpClient = listener.AcceptTcpClient();
 
-                ServerClient sc = new ServerClient(tcpClient, m);
-                c.Add(sc);
+                ServerClient sc = new ServerClient(tcpClient);
+                clients.Add(sc);
             }
 
         }
 
-        static void UpdateAll(Map level, List<ServerClient> clients)
+        static void UpdateAll()
         {
             while(true)
             {
@@ -52,12 +53,12 @@ namespace Playerdom.Server
                 {
                     if(!sc.IsInitialized)
                     {
-                        sc.InitializePlayer(level);
+                        sc.InitializePlayer();
                     }
                     if(sc.LastUpdate.AddSeconds(5) > DateTime.Now)
                     {
                         leavingPlayers.Add(sc);
-                        sc.RemovePlayer(level);
+                        sc.RemovePlayer();
                     }
                 }
 
@@ -138,10 +139,7 @@ namespace Playerdom.Server
                 level.entitiesMarkedForDeletion.Clear();
 
 
-                foreach (ServerClient pc in clients)
-                {
-                    SendUpdates(pc, level);
-                }
+                Thread.Sleep(30);
             }
         }
 
@@ -150,8 +148,6 @@ namespace Playerdom.Server
             Console.WriteLine("Playerdom Test Server");
             PlayerdomCerasSettings.Initialize();
 
-            List<ServerClient> clients = new List<ServerClient>();
-            Map level;
 
 
             level = MapService.CreateMap("World");
@@ -159,67 +155,13 @@ namespace Playerdom.Server
             TcpListener tcp = new TcpListener(IPAddress.Any, 25565);
             tcp.Start();
 
-            new Thread(() => AcceptClients(level, clients)).Start();
-            new Thread(() => UpdateAll(level, clients)).Start();
+            new Thread(() => AcceptClients()).Start();
+            new Thread(() => UpdateAll()).Start();
 
 
 
             while (!Console.KeyAvailable)
             {
-            }
-        }
-
-        public static void SendUpdates(ServerClient player, Map level)
-        {
-
-            if (player.NeedsAllInfo)
-            {
-                player.NeedsAllInfo = false;
-                //Tile Data
-                MapColumn[] lc = new MapColumn[32];
-
-                MapColumn col;
-
-                for (int i = 0; i < Map.SIZE_X; i++)
-                {
-                    col = new MapColumn();
-
-                    col.columnNumber = i;
-                    for (int j = 0; j < Map.SIZE_Y; j++)
-                    {
-                        col.typesColumn[j] = level.tiles[i, j].typeID;
-                        col.variantsColumn[j] = level.tiles[i, j].variantID;
-                    }
-
-                    lc[31 - (i % 32)] = col;
-
-                    if (i % 32 == 31)
-                    {
-                        player.Send(lc);
-                        
-                        player.Log("Sent column packet");
-                    }
-                }
-
-
-                //Focused Object
-                player.Send(new KeyValuePair<Guid, GameObject>(player.FocusedObjectID, level.gameObjects.GetValueOrDefault(player.FocusedObjectID)));
-
-                player.Log("Sent focused object");
-            }
-
-
-            if (player.HasMap)
-            {
-                //All Objects
-                player.Send(level.gameObjects);
-                player.Log("Sent game objects");
-
-
-                //All Entities
-                player.Send(level.gameEntities);
-
-                player.Log("Sent game entities");
             }
         }
     }

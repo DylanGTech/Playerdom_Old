@@ -74,9 +74,6 @@ namespace Playerdom.Shared
 
         const ushort VIEW_DISTANCE = 31;
 
-        //static CerasSerializer serializer = new CerasSerializer();
-        //static byte[] serializerBuffer = null;
-
         public GameLevel()
         {
             Window.AllowUserResizing = true;
@@ -164,6 +161,16 @@ namespace Playerdom.Shared
                     }
                 }
                 connectionWatch.Stop();
+
+
+            Timer t = new Timer(40);
+
+            t.Elapsed += (object sender, ElapsedEventArgs e) =>
+            {
+                _sendCeras.WriteToStream(_netStream, Keyboard.GetState().GetPressedKeys());
+            };
+
+            t.Start();
 
             base.Initialize();
         }
@@ -476,20 +483,25 @@ namespace Playerdom.Shared
                 {
                     MapColumn[] colArray = (MapColumn[])obj;
 
-                    for (int i = 0; i < 32; i++)
+                    for (int i = 0; i < 16; i++)
                     {
 
                         for (int j = 0; j < Map.SIZE_Y; j++)
                         {
-                            level.tiles[colArray[i].columnNumber, j].typeID = colArray[i].typesColumn[j];
-                            level.tiles[colArray[i].columnNumber, j].variantID = colArray[i].variantsColumn[j];
+                            level.tiles[colArray[i].ColumnNumber, j].typeID = colArray[i].TypesColumn[j];
+                            level.tiles[colArray[i].ColumnNumber, j].variantID = colArray[i].VariantsColumn[j];
+                        }
+                    }
+
+                    if(colArray[15].ColumnNumber == Map.SIZE_X - 1)
+                    {
+                        lock(_sendCeras)
+                        {
+                            _sendCeras.WriteToStream(_netStream, "MapAffirmation");
                         }
                     }
                 }
-
-                _sendCeras.WriteToStream(_netStream, "MapAffrimation");
             }
         }
-
     }
 }
