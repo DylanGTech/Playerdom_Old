@@ -411,7 +411,7 @@ namespace Playerdom.Shared
                     else
                     {
                         focusedObject = (KeyValuePair<Guid, GameObject>)obj;
-                        level.gameObjects.Add(focusedObject.Key, focusedObject.Value);
+                        level.gameObjects.TryAdd(focusedObject.Key, focusedObject.Value);
                     }
                 }
                 else if (obj is Dictionary<Guid, GameObject>)
@@ -434,7 +434,7 @@ namespace Playerdom.Shared
                         else
                         {
                             level.gameObjects[o.Key].Dispose();
-                            level.gameObjects.Remove(o.Key);
+                            level.gameObjects.TryRemove(o.Key, out GameObject _object);
                         }
                     }
 
@@ -442,7 +442,7 @@ namespace Playerdom.Shared
                     {
                         if (!level.gameObjects.TryGetValue(o.Key, out GameObject gobj))
                         {
-                            level.gameObjects.Add(o.Key, o.Value);
+                            level.gameObjects.TryAdd(o.Key, o.Value);
                         }
                     }
                 }
@@ -465,7 +465,7 @@ namespace Playerdom.Shared
                         else
                         {
                             level.gameEntities[e.Key].Dispose();
-                            level.gameEntities.Remove(e.Key);
+                            level.gameEntities.TryRemove(e.Key, out Entity _entity);
                         }
                     }
 
@@ -473,7 +473,7 @@ namespace Playerdom.Shared
                     {
                         if (!level.gameEntities.TryGetValue(e.Key, out Entity ent))
                         {
-                            level.gameEntities.Add(e.Key, e.Value);
+                            level.gameEntities.TryAdd(e.Key, e.Value);
                         }
                     }
 
@@ -495,7 +495,7 @@ namespace Playerdom.Shared
 
                     if(colArray[15].ColumnNumber == Map.SIZE_X - 1)
                     {
-                        lock(_sendCeras)
+                        //lock(_sendCeras)
                         {
                             _sendCeras.WriteToStream(_netStream, "MapAffirmation");
                         }

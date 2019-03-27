@@ -126,7 +126,7 @@ namespace Playerdom.Shared.Objects
                     }
 
 
-                    map.gameEntities.Add(Guid.NewGuid(), new Bullet(position, new Vector2(32, 32), tragectory, this));
+                    map.gameEntities.TryAdd(Guid.NewGuid(), new Bullet(position, new Vector2(32, 32), tragectory, this));
 
                     bulletTimer = DateTime.Now.AddSeconds(0.85);
                 }

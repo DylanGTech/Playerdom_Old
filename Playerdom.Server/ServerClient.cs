@@ -22,6 +22,12 @@ namespace Playerdom.Server
         readonly CerasSerializer _receiveCeras;
 
 
+
+        public string EndPointString
+        {
+            get { return _tcpClient.Client.RemoteEndPoint.ToString(); }
+        }
+
         public DateTime LastUpdate { get; set; }
 
         public Guid FocusedObjectID { get; set; }
@@ -43,19 +49,19 @@ namespace Playerdom.Server
 
             Log("Player Joined");
 
-            Guid newGuid = Guid.NewGuid();
-            FocusedObjectID = newGuid;
+            FocusedObjectID = Guid.NewGuid();
             InputState = new KeyboardState();
             LastUpdate = DateTime.Now;
 
 
             StartReceivingMessages();
             StartSendingMessages();
+
         }
 
         public void InitializePlayer()
         {
-            Program.level.gameObjects.Add(FocusedObjectID, new Player(new Point(0, 0), new Vector2(Tile.SIZE_X, Tile.SIZE_Y), displayName: "Player"));
+            Program.level.gameObjects.TryAdd(FocusedObjectID, new Player(new Point(0, 0), new Vector2(Tile.SIZE_X, Tile.SIZE_Y), displayName: "Player"));
         }
 
         public void RemovePlayer()
@@ -82,7 +88,7 @@ namespace Playerdom.Server
                 {
                     Log($"Error while handling client '{_tcpClient.Client.RemoteEndPoint}': {e}");
                     RemovePlayer();
-                    Program.leavingPlayers.Add(this);
+                    Program.leavingPlayers.Enqueue(EndPointString);
                 }
             });
         }
@@ -96,7 +102,7 @@ namespace Playerdom.Server
                 {
                     try
                     {
-                        lock (_sendCeras)
+                        //lock (_sendCeras)
                         {
                             if (NeedsAllInfo)
                             {
@@ -127,15 +133,18 @@ namespace Playerdom.Server
 
                                         Log("Sent column packet");
 
-                                        Thread.Sleep(5);
+                                        Thread.Sleep(10);
                                     }
                                 }
 
+                                
 
                                 //Focused Object
                                 Send(new KeyValuePair<Guid, GameObject>(FocusedObjectID, Program.level.gameObjects.GetValueOrDefault(FocusedObjectID)));
 
                                 Log("Sent focused object");
+
+                                Thread.Sleep(30);
                             }
 
 
@@ -158,7 +167,7 @@ namespace Playerdom.Server
                     {
                         Log($"Error while handling client '{_tcpClient.Client.RemoteEndPoint}': {e}");
                         RemovePlayer();
-                        Program.leavingPlayers.Add(this);
+                        Program.leavingPlayers.Enqueue(EndPointString);
                     }
                     
 
@@ -191,7 +200,7 @@ namespace Playerdom.Server
 
         public void Send(object obj)
         {
-            lock(_sendCeras)
+            //lock(_sendCeras)
                 _sendCeras.WriteToStream(_netStream, obj);
 
         }

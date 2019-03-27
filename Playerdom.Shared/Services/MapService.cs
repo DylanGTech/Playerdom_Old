@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Microsoft.Xna.Framework;
 using Playerdom.Shared.Entities;
 using MessagePack;
+using System.Collections.Concurrent;
 
 #if WINDOWS_UAP
 using Windows.Storage;
@@ -39,8 +40,8 @@ namespace Playerdom.Shared.Services
 
         public string levelName = "";
         public Tile[,] tiles = new Tile[SIZE_X,SIZE_Y];
-        public Dictionary<Guid, GameObject> gameObjects = new Dictionary<Guid, GameObject>();
-        public Dictionary<Guid, Entity> gameEntities = new Dictionary<Guid, Entity>();
+        public ConcurrentDictionary<Guid, GameObject> gameObjects = new ConcurrentDictionary<Guid, GameObject>();
+        public ConcurrentDictionary<Guid, Entity> gameEntities = new ConcurrentDictionary<Guid, Entity>();
 
         public int mapOffsetX;
         public int mapOffsetY;
@@ -449,10 +450,10 @@ namespace Playerdom.Shared.Services
 
             for (int i = 0; i < numRandomEnemies; i++)
             {
-                m.gameObjects.Add(Guid.NewGuid(), new Enemy(new Point(r.Next(0, (int)Map.SIZE_X - 1) * (int)Tile.SIZE_X, r.Next(0, (int)Map.SIZE_Y - 1) * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
+                m.gameObjects.TryAdd(Guid.NewGuid(), new Enemy(new Point(r.Next(0, (int)Map.SIZE_X - 1) * (int)Tile.SIZE_X, r.Next(0, (int)Map.SIZE_Y - 1) * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
             }
 
-            m.gameObjects.Add(Guid.NewGuid(), new Townsman(new Point(12 * (int)Tile.SIZE_X, 12 * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
+            m.gameObjects.TryAdd(Guid.NewGuid(), new Townsman(new Point(12 * (int)Tile.SIZE_X, 12 * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
 
             Point endToStartAt = endPoints[r.Next(0, endPoints.Count - 1)];
             endToStartAt.X *= (int)Tile.SIZE_X;
@@ -565,7 +566,7 @@ namespace Playerdom.Shared.Services
             int numEnemies = r.Next(0, 7);
 
             for (int i = 0; i < numEnemies; i++)
-                m.gameObjects.Add(Guid.NewGuid(), new Enemy(new Point((int)((position.X + r.Next(1, (int)sizeX - 1)) * Tile.SIZE_X), (int)((position.Y + r.Next(1, (int)sizeY - 1)) * Tile.SIZE_Y)), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
+                m.gameObjects.TryAdd(Guid.NewGuid(), new Enemy(new Point((int)((position.X + r.Next(1, (int)sizeX - 1)) * Tile.SIZE_X), (int)((position.Y + r.Next(1, (int)sizeY - 1)) * Tile.SIZE_Y)), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
 
         }
 

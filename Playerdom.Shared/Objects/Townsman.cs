@@ -57,7 +57,6 @@ namespace Playerdom.Shared.Objects
                         if (Math.Abs(distance.X) <= Tile.SIZE_X * 4 || Math.Abs(distance.Y) <= Tile.SIZE_Y * 4)
                         {
                             Task.Run(() => DisplayDialogAsync("Hello " + o.Value.DisplayName + "!", 3));
-                            Console.WriteLine("Time to talk!");
                         }
                         break;
                     }

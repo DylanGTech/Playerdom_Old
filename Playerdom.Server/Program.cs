@@ -20,19 +20,20 @@ using System.Reflection;
 using Ceras;
 using System.Text;
 using Newtonsoft.Json;
+using System.Collections.Concurrent;
 
 namespace Playerdom.Server
 {
     public class Program
     {
 
-        public static List<ServerClient> leavingPlayers = new List<ServerClient>();
+        public static ConcurrentQueue<string> leavingPlayers = new ConcurrentQueue<string>();
         public static Map level = new Map();
-        public static List<ServerClient> clients = new List<ServerClient>();
+        public static ConcurrentDictionary<string, ServerClient> clients = new ConcurrentDictionary<string, ServerClient>();
 
         static void AcceptClients()
         {
-            TcpListener listener = new TcpListener(IPAddress.Loopback, 25565);
+            TcpListener listener = new TcpListener(IPAddress.Any, 25565);
             listener.Start();
 
             while (true)
@@ -40,7 +41,7 @@ namespace Playerdom.Server
                 TcpClient tcpClient = listener.AcceptTcpClient();
 
                 ServerClient sc = new ServerClient(tcpClient);
-                clients.Add(sc);
+                clients.TryAdd(sc.EndPointString, sc);
             }
 
         }
@@ -49,22 +50,22 @@ namespace Playerdom.Server
         {
             while(true)
             {
-                foreach(ServerClient sc in clients)
+                foreach(KeyValuePair<string, ServerClient> sc in clients)
                 {
-                    if(!sc.IsInitialized)
+                    if(!sc.Value.IsInitialized)
                     {
-                        sc.InitializePlayer();
+                        sc.Value.InitializePlayer();
                     }
-                    if(sc.LastUpdate.AddSeconds(5) > DateTime.Now)
+                    if(sc.Value.LastUpdate.AddSeconds(5) > DateTime.Now)
                     {
-                        leavingPlayers.Add(sc);
-                        sc.RemovePlayer();
+                        leavingPlayers.Enqueue(sc.Value.EndPointString);
+                        sc.Value.RemovePlayer();
                     }
                 }
 
-                foreach (ServerClient sc in leavingPlayers)
+                while(leavingPlayers.TryDequeue(out string endpoint))
                 {
-                    clients.Remove(sc);
+                    clients.TryRemove(endpoint, out ServerClient sc);
                 }
                 leavingPlayers.Clear();
 
@@ -75,17 +76,11 @@ namespace Playerdom.Server
                     ent.Value.Update(gameTime, level);
                 }
 
-                List<Guid> playerGuids = new List<Guid>();
-                foreach (ServerClient pc in clients)
-                {
-                    level.gameObjects[pc.FocusedObjectID].Update(gameTime, level, pc.InputState);
-                    playerGuids.Add(pc.FocusedObjectID);
-                }
-
                 foreach (KeyValuePair<Guid, GameObject> g in level.gameObjects)
                 {
-                    if (!playerGuids.Contains(g.Key))
+                    if (!clients.Any(cl => cl.Value.FocusedObjectID == g.Key))
                         g.Value.Update(gameTime, level, new KeyboardState());
+                    else g.Value.Update(gameTime, level, clients.First(cl => cl.Value.FocusedObjectID == g.Key).Value.InputState);
                 }
                 foreach (KeyValuePair<Guid, GameObject> g1 in level.gameObjects)
                 {
@@ -128,13 +123,13 @@ namespace Playerdom.Server
 
                 foreach (Guid g in level.objectsMarkedForDeletion)
                 {
-                    level.gameObjects.Remove(g);
+                    level.gameObjects.Remove(g, out GameObject o);
                 }
                 level.objectsMarkedForDeletion.Clear();
 
                 foreach (Guid g in level.entitiesMarkedForDeletion)
                 {
-                    level.gameEntities.Remove(g);
+                    level.gameEntities.Remove(g, out Entity o);
                 }
                 level.entitiesMarkedForDeletion.Clear();
 
@@ -152,8 +147,6 @@ namespace Playerdom.Server
 
             level = MapService.CreateMap("World");
 
-            TcpListener tcp = new TcpListener(IPAddress.Any, 25565);
-            tcp.Start();
 
             new Thread(() => AcceptClients()).Start();
             new Thread(() => UpdateAll()).Start();
