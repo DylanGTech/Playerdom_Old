@@ -11,18 +11,16 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
-//using MessagePack;
-using LiteNetLib.Utils;
 using System.Timers;
 using Timer = System.Timers.Timer;
 using System.Net;
 using System.Reflection;
 using Ceras;
-//using LiteNetLib;
 using System.Text;
 using Newtonsoft.Json;
 using System.Net.Sockets;
 using Ceras.Helpers;
+using System.Collections.Concurrent;
 
 #if WINDOWS_UAP
 using Windows.Storage;
@@ -130,7 +128,7 @@ namespace Playerdom.Shared
             }
 #endif
             _tcpClient = new TcpClient();
-            _tcpClient.Connect("localhost", 25565);
+            _tcpClient.Connect(ip, 25565);
             _netStream = _tcpClient.GetStream();
 
             _sendCeras = new CerasSerializer(PlayerdomCerasSettings.config);
@@ -163,11 +161,12 @@ namespace Playerdom.Shared
                 connectionWatch.Stop();
 
 
-            Timer t = new Timer(40);
+            Timer t = new Timer(60);
 
             t.Elapsed += (object sender, ElapsedEventArgs e) =>
             {
-                _sendCeras.WriteToStream(_netStream, Keyboard.GetState().GetPressedKeys());
+                lock(_sendCeras)
+                    _sendCeras.WriteToStream(_netStream, Keyboard.GetState());
             };
 
             t.Start();
@@ -276,9 +275,10 @@ namespace Playerdom.Shared
             foreach(KeyValuePair<Guid, GameObject> o in level.gameObjects)
             {
 
-
+                if (o.Value == null || o.Key == Guid.Empty)
+                    continue;
                 if (o.Value.ActiveTexture == null) o.Value.LoadContent(Content, GraphicsDevice);
-                if (object.ReferenceEquals(o, focusedObject))
+                if (object.ReferenceEquals(o.Value, focusedObject.Value))
                 {
                     o.Value.Draw(spriteBatch, GraphicsDevice, new Vector2(0,0));
                 }
@@ -398,15 +398,35 @@ namespace Playerdom.Shared
 
 
 
-                if (obj is KeyValuePair<Guid, GameObject>)
+                if (obj is MapColumn[])
+                {
+                    MapColumn[] colArray = (MapColumn[])obj;
+
+                    for (int i = 0; i < 32; i++)
+                    {
+
+                        for (int j = 0; j < Map.SIZE_Y; j++)
+                        {
+                            level.tiles[colArray[i].ColumnNumber, j].typeID = colArray[i].TypesColumn[j];
+                            level.tiles[colArray[i].ColumnNumber, j].variantID = colArray[i].VariantsColumn[j];
+                        }
+                    }
+
+                    if (colArray[31].ColumnNumber == Map.SIZE_X - 1)
+                    {
+                        _sendCeras.WriteToStream(_netStream, "MapAffirmation");
+                    }
+                }
+                //TODO: Make this work with ANY game object type
+                else if (obj is KeyValuePair<Guid, GameObject> || obj is KeyValuePair<Guid, Player>)
                 {
 
 
                     if (level.gameObjects.TryGetValue(((KeyValuePair<Guid, GameObject>)obj).Key, out GameObject ogo))
                     {
-                        level.gameObjects[((KeyValuePair<Guid, GameObject>)obj).Key] = ((KeyValuePair<Guid, GameObject>)obj).Value;
-                        focusedObject = (KeyValuePair<Guid, GameObject>)obj;
-                        ogo.Dispose();
+                        //level.gameObjects[((KeyValuePair<Guid, GameObject>)obj).Key] = ((KeyValuePair<Guid, GameObject>)obj).Value;
+                        //focusedObject = (KeyValuePair<Guid, GameObject>)obj;
+                        //ogo.Dispose();
                     }
                     else
                     {
@@ -414,10 +434,10 @@ namespace Playerdom.Shared
                         level.gameObjects.TryAdd(focusedObject.Key, focusedObject.Value);
                     }
                 }
-                else if (obj is Dictionary<Guid, GameObject>)
+                else if (obj is ConcurrentDictionary<Guid, GameObject>)
                 {
 
-                    Dictionary<Guid, GameObject> initialObjects = obj as Dictionary<Guid, GameObject>;
+                    ConcurrentDictionary<Guid, GameObject> initialObjects = obj as ConcurrentDictionary<Guid, GameObject>;
 
 
                     Dictionary<Guid, GameObject> copyO = new Dictionary<Guid, GameObject>();
@@ -437,6 +457,7 @@ namespace Playerdom.Shared
                             level.gameObjects.TryRemove(o.Key, out GameObject _object);
                         }
                     }
+                    
 
                     foreach (KeyValuePair<Guid, GameObject> o in initialObjects)
                     {
@@ -446,9 +467,9 @@ namespace Playerdom.Shared
                         }
                     }
                 }
-                else if (obj is Dictionary<Guid, Entity>)
+                else if (obj is ConcurrentDictionary<Guid, Entity>)
                 {
-                    Dictionary<Guid, Entity> newEntities = obj as Dictionary<Guid, Entity>;
+                    ConcurrentDictionary<Guid, Entity> newEntities = obj as ConcurrentDictionary<Guid, Entity>;
 
 
                     Dictionary<Guid, Entity> copyE = new Dictionary<Guid, Entity>();
@@ -474,30 +495,6 @@ namespace Playerdom.Shared
                         if (!level.gameEntities.TryGetValue(e.Key, out Entity ent))
                         {
                             level.gameEntities.TryAdd(e.Key, e.Value);
-                        }
-                    }
-
-
-                }
-                else if(obj is MapColumn[])
-                {
-                    MapColumn[] colArray = (MapColumn[])obj;
-
-                    for (int i = 0; i < 16; i++)
-                    {
-
-                        for (int j = 0; j < Map.SIZE_Y; j++)
-                        {
-                            level.tiles[colArray[i].ColumnNumber, j].typeID = colArray[i].TypesColumn[j];
-                            level.tiles[colArray[i].ColumnNumber, j].variantID = colArray[i].VariantsColumn[j];
-                        }
-                    }
-
-                    if(colArray[15].ColumnNumber == Map.SIZE_X - 1)
-                    {
-                        //lock(_sendCeras)
-                        {
-                            _sendCeras.WriteToStream(_netStream, "MapAffirmation");
                         }
                     }
                 }

@@ -8,6 +8,7 @@ using System.Reflection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Playerdom.Shared.Services;
+using System.Collections.Concurrent;
 
 namespace Playerdom.Shared
 {
@@ -34,6 +35,7 @@ namespace Playerdom.Shared
             //config.KnownTypes.Add(typeof(ObjectType));
             config.KnownTypes.Add(typeof(Vector2));
             config.KnownTypes.Add(typeof(Point));
+            config.KnownTypes.Add(typeof(Rectangle));
             config.KnownTypes.Add(typeof(Guid));
             config.KnownTypes.Add(typeof(Keys));
             config.KnownTypes.Add(typeof(Keys[]));
@@ -51,6 +53,8 @@ namespace Playerdom.Shared
             config.KnownTypes.Add(typeof(KeyValuePair<Guid, GameObject>));
             config.KnownTypes.Add(typeof(Dictionary<Guid, GameObject>));
             config.KnownTypes.Add(typeof(Dictionary<Guid, Entity>));
+            config.KnownTypes.Add(typeof(ConcurrentDictionary<Guid, GameObject>));
+            config.KnownTypes.Add(typeof(ConcurrentDictionary<Guid, Entity>));
             //config.KnownTypes.Add(typeof(Dictionary<Guid, GameObject>));
             //config.KnownTypes.Add(typeof(Dictionary<Guid, Entity>));
             //config.KnownTypes.Add(typeof(Dictionary<string, object>));
@@ -63,6 +67,9 @@ namespace Playerdom.Shared
             config.ConfigType<Townsman>().ConstructBy(typeof(Townsman).GetConstructors()[0]);
             config.ConfigType<Bullet>().ConstructBy(typeof(Bullet).GetConstructors()[0]);
             config.ConfigType<MapColumn>().ConstructBy(typeof(MapColumn).GetConstructors()[0]);
+
+            config.ConfigType<Point>().ConstructBy(typeof(Point).GetConstructor(new Type[] { typeof(int), typeof(int) }));
+            config.ConfigType<Vector2>().ConstructBy(typeof(Vector2).GetConstructor(new Type[] { typeof(float), typeof(float) }));
 
             config.Advanced.PersistTypeCache = true;
         }

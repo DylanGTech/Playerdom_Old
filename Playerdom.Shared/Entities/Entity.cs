@@ -1,5 +1,4 @@
-﻿using MessagePack;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
@@ -8,7 +7,6 @@ using Playerdom.Shared.Services;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using MessagePack.Formatters;
 
 namespace Playerdom.Shared.Entities
 {

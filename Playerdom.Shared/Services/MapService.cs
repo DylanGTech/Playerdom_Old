@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Microsoft.Xna.Framework;
 using Playerdom.Shared.Entities;
-using MessagePack;
 using System.Collections.Concurrent;
 
 #if WINDOWS_UAP
@@ -21,15 +20,12 @@ using Windows.ApplicationModel;
 
 namespace Playerdom.Shared.Services
 {
-    [MessagePackObject]
     public struct Tile
     {
         public const uint SIZE_X = 128;
         public const uint SIZE_Y = 128;
 
-        [Key(0)]
         public ushort typeID { get; set; } //Determines default properties
-        [Key(1)]
         public byte variantID { get; set; }
     }
 
@@ -893,14 +889,14 @@ namespace Playerdom.Shared.Services
 
     public class MapColumn
     {
-        public MapColumn(int columnNumber, ushort[] typesColumn, byte[] variantsColumn)
+        public MapColumn(uint columnNumber, ushort[] typesColumn, byte[] variantsColumn)
         {
             ColumnNumber = columnNumber;
             TypesColumn = typesColumn;
             VariantsColumn = variantsColumn;
         }
 
-        public int ColumnNumber { get; set; }
+        public uint ColumnNumber { get; set; }
         public ushort[] TypesColumn { get; set; }
         public byte[] VariantsColumn { get; set; }
     }
