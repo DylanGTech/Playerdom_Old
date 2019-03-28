@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Newtonsoft.Json;
 using Playerdom.Shared.Objects;
 using Playerdom.Shared.Services;
 using Playerdom.Shared.Entities;
@@ -15,13 +14,11 @@ namespace Playerdom.Shared.Entities
 
     public class Bullet : Entity
     {
-        [JsonIgnore]
         public GameObject Sender
         {
             get; private set;
         } = null;
 
-        [JsonConverter(typeof(XnaConverter))]
         public Vector2 Velocity
         {
             get; private set;

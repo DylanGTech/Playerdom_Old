@@ -45,7 +45,7 @@ namespace Playerdom.Shared.Objects
 
             base.LoadContent(content, device);
         }
-        public override void Update(GameTime time, Map map, KeyboardState ks)
+        public override void Update(GameTime time, Map map, KeyboardState ks, Guid objectGuid)
         {
             //GameObject selectedEnemy;
 
@@ -65,7 +65,7 @@ namespace Playerdom.Shared.Objects
                 }
             }
 
-            base.Update(time, map, ks);
+            base.Update(time, map, ks, objectGuid);
         }
     }
 }

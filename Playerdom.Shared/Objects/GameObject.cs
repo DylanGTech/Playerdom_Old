@@ -2,8 +2,6 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Playerdom.Shared.Services;
 using Playerdom.Shared;
 using Playerdom.Shared.Entities;
@@ -35,20 +33,22 @@ namespace Playerdom.Shared.Objects
 
         public bool isNew = true;
 
+        public Guid? ObjectTalkingTo
+        {
+            get; set;
+        }
+
 
         protected Point _position;
-        [JsonConverter(typeof(XnaConverter))]
         public Point Position
         {
             get { return _position; }
             protected set
             {
                 _position = value;
-                AddDelta<Point>("Position");
             }
         }
 
-        [JsonIgnore]
         public Texture2D ActiveTexture
         {
             get; protected set;
@@ -61,7 +61,6 @@ namespace Playerdom.Shared.Objects
             protected set
             {
                 _isSolid = value;
-                AddDelta<bool>("IsSolid");
             }
         }
 
@@ -72,19 +71,16 @@ namespace Playerdom.Shared.Objects
             protected set
             {
                 _isHalted = value;
-                AddDelta<bool>("IsHalted");
             }
         }
 
         protected Vector2 _size;
-        [JsonConverter(typeof(XnaConverter))]
         public Microsoft.Xna.Framework.Vector2 Size
         {
             get { return _size; }
             protected set
             {
                 _size = value;
-                AddDelta<Vector2>("Size");
             }
         }
 
@@ -95,7 +91,6 @@ namespace Playerdom.Shared.Objects
             protected set
             {
                 _displayName = value;
-                AddDelta<string>("DisplayName");
             }
         }
 
@@ -107,7 +102,6 @@ namespace Playerdom.Shared.Objects
             protected set
             {
                 _isTalking = value;
-                AddDelta<bool>("IsTalking");
             }
         }
 
@@ -119,11 +113,9 @@ namespace Playerdom.Shared.Objects
             protected set
             {
                 _dialogText = value;
-                AddDelta<string>("DialogText");
             }
         }
 
-        [JsonIgnore]
         public Rectangle BoundingBox
         {
             get
@@ -132,7 +124,6 @@ namespace Playerdom.Shared.Objects
             }
         }
 
-        [JsonIgnore]
         public uint MaxHealth
         {
             get
@@ -141,7 +132,6 @@ namespace Playerdom.Shared.Objects
             }
         }
 
-        [JsonIgnore]
         public uint MaxXP
         {
             get
@@ -157,7 +147,6 @@ namespace Playerdom.Shared.Objects
             protected set
             {
                 _xp = value;
-                AddDelta<uint>("XP");
             }
         }
 
@@ -168,7 +157,6 @@ namespace Playerdom.Shared.Objects
             protected set
             {
                 _health = value;
-                AddDelta<uint>("Health");
             }
         }
 
@@ -179,7 +167,6 @@ namespace Playerdom.Shared.Objects
             protected set
             {
                 _level = value;
-                AddDelta<uint>("Level");
             }
         }
 
@@ -190,7 +177,6 @@ namespace Playerdom.Shared.Objects
             protected set
             {
                 _type = value;
-                AddDelta<ObjectType>("Type");
             }
         }
 
@@ -201,7 +187,6 @@ namespace Playerdom.Shared.Objects
             protected set
             {
                 _facingDirectionX = value;
-                AddDelta<DirectionX>("FacingDirectionX");
             }
         }
 
@@ -212,7 +197,6 @@ namespace Playerdom.Shared.Objects
             protected set
             {
                 _facingDirectionY = value;
-                AddDelta<DirectionY>("FacingDirectionY");
             }
         }
 
@@ -223,7 +207,6 @@ namespace Playerdom.Shared.Objects
             protected set
             {
                 _speed = value;
-                AddDelta<uint>("Speed");
             }
         }
 
@@ -231,7 +214,7 @@ namespace Playerdom.Shared.Objects
         protected bool isInvincible = false;
         protected DateTime wasLastHurt = DateTime.Now;
 
-        [JsonIgnore]
+
         public bool CanBeHurt
         {
             get
@@ -265,9 +248,25 @@ namespace Playerdom.Shared.Objects
             IsTalking = false;
         }
 
-        public virtual void Update(GameTime time, Map map, KeyboardState ks)
+        public virtual void Update(GameTime time, Map map, KeyboardState ks, Guid objectGuid)
         {
+            if (IsTalking)
+            {
+                if (ObjectTalkingTo != null && map.gameObjects.TryGetValue(ObjectTalkingTo.Value, out GameObject ott))
+                {
+                    Vector2 d = this.Distance(ott);
+                    if (Math.Abs(d.X) <= Tile.SIZE_X * 2 || Math.Abs(d.Y) <= Tile.SIZE_Y * 2)
+                    {
 
+                    }
+                    else
+                    {
+                        ott.ObjectTalkingTo = null;
+                        ObjectTalkingTo = null;
+                    }
+                }
+                else ObjectTalkingTo = null;
+            }
         }
         public virtual void Draw(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset)
         {
@@ -432,40 +431,7 @@ namespace Playerdom.Shared.Objects
             FacingDirectionY = o.FacingDirectionY;
             IsTalking = o.IsTalking;
             DialogText = o.DialogText;
-        }
-
-
-        private Dictionary<string,byte[]> delta = new Dictionary<string,byte[]>();
-
-        public Dictionary<string, byte[]> GetDelta()
-        {
-            return delta;
-        }
-
-        public void ResetDelta()
-        {
-            isNew = false;
-            delta.Clear();
-        }
-        public void AddDelta<T>(string propertyName)
-        {
-            /*
-            CerasSerializer serializer = new CerasSerializer(PlayerdomCerasSettings.config);
-
-            //Type propType = this.GetType().GetProperty(propertyName).PropertyType;
-            //MethodInfo serializeMethod = typeof(CerasSerializer).GetMethods().Where(x => x.Name == "Serialize" && x.ContainsGenericParameters && x.GetParameters().Count() == 3).First();
-
-
-            //MethodInfo generic = serializeMethod.MakeGenericMethod(propType);
-            //byte[] changes = null;
-            //int length = (int)generic.Invoke(serializer, new object[] { (T)this.GetType().GetProperty(propertyName).GetValue(this), changes, 0 });
-
-            byte[] changes = serializer.Serialize<T>((T)this.GetType().GetProperty(propertyName).GetValue(this));
-
-            if (delta.Keys.Contains(propertyName))
-                delta[propertyName] = changes;
-            else delta.Add(propertyName, changes);
-            */
+            ObjectTalkingTo = o.ObjectTalkingTo;
         }
 
         public void ApplyDelta(Dictionary<string, byte[]> delta, CerasSerializer serializer)

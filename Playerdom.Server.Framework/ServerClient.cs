@@ -7,6 +7,7 @@ using Playerdom.Shared.Objects;
 using Playerdom.Shared.Services;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -53,20 +54,17 @@ namespace Playerdom.Server
             InputState = new KeyboardState();
             LastUpdate = DateTime.Now;
 
+        }
 
+        public void Start()
+        {
             StartReceivingMessages();
             StartSendingMessages();
-
         }
 
         public void InitializePlayer()
         {
             Program.level.gameObjects.TryAdd(FocusedObjectID, new Player(new Point(0, 0), new Vector2(Tile.SIZE_X, Tile.SIZE_Y), displayName: "Player"));
-        }
-
-        public void RemovePlayer()
-        {
-
         }
 
         void StartReceivingMessages()
@@ -78,7 +76,6 @@ namespace Playerdom.Server
                     // Keep receiving packets from the client and respond to them
                     // Eventually when the client disconnects we'll just get an exception and end the thread...
                     while (Program.clients.ContainsKey(this.EndPointString))
-                    while (Program.clients.ContainsKey(this.EndPointString))
                     {
                         var obj = await _receiveCeras.ReadFromStream(_netStream);
                         Log("Recieved client input");
@@ -87,9 +84,8 @@ namespace Playerdom.Server
                 }
                 catch (Exception e)
                 {
-                    Log($"Error while handling client '{_tcpClient.Client.RemoteEndPoint}': {e}");
-                    RemovePlayer();
-                    Program.leavingPlayers.Enqueue(EndPointString);
+                    if (!Program.leavingPlayers.Contains(EndPointString))
+                        Program.leavingPlayers.Enqueue(EndPointString);
                 }
             });
         }
@@ -165,13 +161,13 @@ namespace Playerdom.Server
                     }
                     catch(Exception e)
                     {
-                        Log($"Error while handling client '{_tcpClient.Client.RemoteEndPoint}': {e}");
-                        RemovePlayer();
-                        Program.leavingPlayers.Enqueue(EndPointString);
+                        //Log($"Error while handling client '{_tcpClient.Client.RemoteEndPoint}': {e}");
+                        if (!Program.leavingPlayers.Contains(EndPointString))
+                            Program.leavingPlayers.Enqueue(EndPointString);
                     }
                     
 
-                    Thread.Sleep(15);
+                    Thread.Sleep(20);
                 }
             });
         }

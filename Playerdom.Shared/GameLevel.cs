@@ -17,7 +17,6 @@ using System.Net;
 using System.Reflection;
 using Ceras;
 using System.Text;
-using Newtonsoft.Json;
 using System.Net.Sockets;
 using Ceras.Helpers;
 using System.Collections.Concurrent;
@@ -52,6 +51,13 @@ namespace Playerdom.Shared
         Texture2D wavyWaterTexture;
         Texture2D bricksTexture;
         Texture2D woodFlooringTexture;
+
+        Texture2D uiBackground;
+        Texture2D barBackground;
+        Texture2D xpBar;
+        Texture2D hpBar;
+
+
 
         public static Map level;
         static Assembly asm = Assembly.GetEntryAssembly();
@@ -161,7 +167,7 @@ namespace Playerdom.Shared
                 connectionWatch.Stop();
 
 
-            Timer t = new Timer(60);
+            Timer t = new Timer(15);
 
             t.Elapsed += (object sender, ElapsedEventArgs e) =>
             {
@@ -196,6 +202,17 @@ namespace Playerdom.Shared
                 bricksTexture = Content.Load<Texture2D>("bricks");
                 woodFlooringTexture = Content.Load<Texture2D>("wood-flooring");
 
+
+
+                uiBackground = new Texture2D(GraphicsDevice, 1, 1);
+                xpBar = new Texture2D(GraphicsDevice, 1, 1);
+                hpBar = new Texture2D(GraphicsDevice, 1, 1);
+                barBackground = new Texture2D(GraphicsDevice, 1, 1);
+
+                uiBackground.SetData(new Color[] { Color.Gray });
+                xpBar.SetData(new Color[] { Color.Yellow });
+                hpBar.SetData(new Color[] { Color.Green });
+                barBackground.SetData(new Color[] { Color.Black });
 
                 font = Content.Load<SpriteFont>("font1");
                 font2 = Content.Load<SpriteFont>("font2");
@@ -302,6 +319,9 @@ namespace Playerdom.Shared
 #endif
                 spriteBatch.DrawString(font2, WATERMARK, new Vector2(0, GraphicsDevice.PresentationParameters.BackBufferHeight - 48), Color.White);
 
+
+            DrawStats();
+
             base.Draw(gameTime);
 
             spriteBatch.End();
@@ -312,6 +332,26 @@ namespace Playerdom.Shared
         //{
         //    return Task.Run(async () =>  await MapService.LoadMapAsync(mapName)).Result;
         //}
+
+        protected void DrawStats()
+        {
+            spriteBatch.Draw(barBackground, new Rectangle(64 - 8, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 - 8, 384 + 16, 192 + 16), Color.White);
+            spriteBatch.Draw(uiBackground, new Rectangle(64, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192, 384, 192), Color.White);
+
+            spriteBatch.DrawString(font2, focusedObject.Value.DisplayName, new Vector2(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 16), Color.White);
+
+            spriteBatch.DrawString(font2, string.Format("Health: {0} / {1}", focusedObject.Value.Health, focusedObject.Value.MaxHealth), new Vector2(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 48), Color.White);
+            spriteBatch.Draw(barBackground, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 80, 384 - 32, 16), Color.White);
+            spriteBatch.Draw(hpBar, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 80, (int)((384 - 32) * ((double)focusedObject.Value.Health / (double)focusedObject.Value.MaxHealth)), 16), Color.White);
+
+
+            spriteBatch.DrawString(font2, string.Format("Expereince: {0} / {1}", focusedObject.Value.XP, focusedObject.Value.MaxXP), new Vector2(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 108), Color.White);
+            spriteBatch.Draw(barBackground, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 144, 384 - 32, 16), Color.White);
+            spriteBatch.Draw(xpBar, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 144, (int)((384 - 32) * ((double)focusedObject.Value.XP / (double)focusedObject.Value.MaxXP)), 16), Color.White);
+
+
+        }
+
 
         protected void DrawMap()
         {

@@ -16,7 +16,6 @@ using System.Net.Sockets;
 using System.Reflection;
 using Ceras;
 using System.Text;
-using Newtonsoft.Json;
 using System.Collections.Concurrent;
 
 namespace Playerdom.Server
@@ -39,6 +38,7 @@ namespace Playerdom.Server
 
                 ServerClient sc = new ServerClient(tcpClient);
                 clients.TryAdd(sc.EndPointString, sc);
+                sc.Start();
             }
 
         }
@@ -53,19 +53,23 @@ namespace Playerdom.Server
                     {
                         sc.Value.InitializePlayer();
                     }
-                    if(sc.Value.LastUpdate.AddSeconds(5) <= DateTime.Now)
+                    if(sc.Value.LastUpdate.AddSeconds(10) <= DateTime.Now)
                     {
-                        leavingPlayers.Enqueue(sc.Value.EndPointString);
-                        sc.Value.RemovePlayer();
+                        if(!leavingPlayers.Contains(sc.Value.EndPointString))
+                            leavingPlayers.Enqueue(sc.Value.EndPointString);
                     }
                 }
 
                 while(leavingPlayers.TryDequeue(out string endpoint))
                 {
                     clients.TryRemove(endpoint, out ServerClient sc);
-                }
 
-                while (!leavingPlayers.IsEmpty) leavingPlayers.TryDequeue(out string result);
+                    if(sc != null)
+                    {
+                        sc.Log("Player left");
+                        level.gameObjects.TryRemove(sc.FocusedObjectID, out GameObject player);
+                    }
+                }
 
 
                 GameTime gameTime = new GameTime();
@@ -77,8 +81,8 @@ namespace Playerdom.Server
                 foreach (KeyValuePair<Guid, GameObject> g in level.gameObjects)
                 {
                     if (!clients.Any(cl => cl.Value.FocusedObjectID == g.Key))
-                        g.Value.Update(gameTime, level, new KeyboardState());
-                    else g.Value.Update(gameTime, level, clients.First(cl => cl.Value.FocusedObjectID == g.Key).Value.InputState);
+                        g.Value.Update(gameTime, level, new KeyboardState(), g.Key);
+                    else g.Value.Update(gameTime, level, clients.First(cl => cl.Value.FocusedObjectID == g.Key).Value.InputState, g.Key);
                 }
                 foreach (KeyValuePair<Guid, GameObject> g1 in level.gameObjects)
                 {
@@ -132,7 +136,7 @@ namespace Playerdom.Server
                 level.entitiesMarkedForDeletion.Clear();
 
 
-                Thread.Sleep(30);
+                Thread.Sleep(15);
             }
         }
 

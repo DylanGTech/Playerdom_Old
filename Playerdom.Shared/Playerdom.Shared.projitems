@@ -18,7 +18,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Objects\Player.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Objects\Townsman.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PlayerdomCerasSettings.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)PlayerdomJsonSettings.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\CollisionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\MapService.cs" />
   </ItemGroup>

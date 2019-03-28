@@ -67,7 +67,7 @@ namespace Playerdom.Shared.Objects
             base.HandleCollision(entity, m);
         }
 
-        public override void Update(GameTime time, Map map, KeyboardState ks)
+        public override void Update(GameTime time, Map map, KeyboardState ks, Guid objectGuid)
         {
             Vector2 distance = new Vector2();
 
@@ -132,46 +132,69 @@ namespace Playerdom.Shared.Objects
                 }
             }
 
+
+
             if(ks.IsKeyDown(Keys.T) && !IsTalking)
             {
-                Random r = new Random(DateTime.Now.Millisecond);
-                string text = "";
-                switch(r.Next(0, 8))
+                bool talkingToObject = false;
+                foreach(KeyValuePair<Guid, GameObject> go1 in map.gameObjects)
                 {
-                    default:
-                    case 0:
-                        text = "Dylan would love it if I were to give him ideas.";
-                        break;
-                    case 1:
-                        text = "Booooring!";
-                        break;
-                    case 2:
-                        text = "I ought to level up.";
-                        break;
-                    case 3:
-                        text = "Hmm, What should I do now?";
-                        break;
-                    case 4:
-                        text = "I wish I were in a friendlier dimension.";
-                        break;
-                    case 5:
-                        text = "What's the meaning of life?";
-                        break;
-                    case 6:
-                        text = "Boy was that exciting!";
-                        break;
-                    case 7:
-                        text = "I'm only in it for the money";
-                        break;
-                    case 8:
-                        text = "Don't you dare hack me!";
-                        break;
-                }
+                    if(go1.Key != objectGuid && go1.Value.IsTalking == false && (go1.Value.ObjectTalkingTo == null || go1.Value.ObjectTalkingTo == objectGuid))
+                    {
+                        Vector2 d = Distance(go1.Value);
+                        if (Math.Abs(d.X) <= Tile.SIZE_X * 2 && Math.Abs(d.Y) <= Tile.SIZE_Y * 2)
+                        {
+                            go1.Value.ObjectTalkingTo = objectGuid;
+                            ObjectTalkingTo = go1.Key;
+                            talkingToObject = true;
 
-                Task.Run(async () => await DisplayDialogAsync(text));
+                            Task.Run(async () => await DisplayDialogAsync("Hello " + go1.Value.DisplayName + "!"));
+                            break;
+                        }
+                    }
+                }
+                if(!talkingToObject)
+                {
+                    ObjectTalkingTo = null;
+                    Random r = new Random(DateTime.Now.Millisecond);
+                    string text = "";
+                    switch (r.Next(0, 8))
+                    {
+                        default:
+                        case 0:
+                            text = "Dylan would love it if I were to give him ideas.";
+                            break;
+                        case 1:
+                            text = "Booooring!";
+                            break;
+                        case 2:
+                            text = "I ought to level up.";
+                            break;
+                        case 3:
+                            text = "Hmm, What should I do now?";
+                            break;
+                        case 4:
+                            text = "I wish I were in a friendlier dimension.";
+                            break;
+                        case 5:
+                            text = "What's the meaning of life?";
+                            break;
+                        case 6:
+                            text = "Boy was that exciting!";
+                            break;
+                        case 7:
+                            text = "I'm only in it for the money";
+                            break;
+                        case 8:
+                            text = "Don't you dare hack me!";
+                            break;
+                    }
+
+                    Task.Run(async () => await DisplayDialogAsync(text));
+                }
             }
 
-            base.Update(time, map, ks);
+            base.Update(time, map, ks, objectGuid);
         }
 
         public override void Die(Map m)

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Newtonsoft.Json;
 using Playerdom.Shared.Objects;
 using Playerdom.Shared.Services;
 using System;
@@ -15,19 +14,15 @@ namespace Playerdom.Shared.Entities
         public bool MarkedForDeletion = false;
 
 
-
-        [JsonConverter(typeof(XnaConverter))]
         public Point Position
         {
             get; protected set;
         }
 
-        [JsonIgnore]
         public Texture2D ActiveTexture
         {
             get; protected set;
         }
-        [JsonIgnore]
         public Rectangle BoundingBox
         {
             get
@@ -43,7 +38,6 @@ namespace Playerdom.Shared.Entities
             get; protected set;
         }
 
-        [JsonConverter(typeof(XnaConverter))]
         public Microsoft.Xna.Framework.Vector2 Size
         {
             get; protected set;
