@@ -13,7 +13,7 @@ namespace Playerdom.Shared.Objects
 {
     public class Enemy : GameObject
     {
-        public Enemy(Point position, Vector2 size, uint level = 1, uint xp = 0, uint speed = 4, bool isHalted = false, bool isSolid = true, uint health = 0, string displayName = "Enemy", ObjectType type = ObjectType.EnemyNPC, DirectionY facingDirectionY = DirectionY.Center, DirectionX facingDirectionX = DirectionX.Center)
+        public Enemy(Point position, Vector2 size, uint level = 1, uint xp = 0, uint speed = 4, bool isHalted = false, bool isSolid = true, uint health = 0, string displayName = "Enemy", ObjectType type = ObjectType.EnemyNPC, DirectionY facingDirectionY = DirectionY.Center, DirectionX facingDirectionX = DirectionX.Center, Guid? objectTalkingTo = null, decimal money = 0)
         {
 
             Position = position;
@@ -30,6 +30,8 @@ namespace Playerdom.Shared.Objects
             FacingDirectionX = facingDirectionX;
             FacingDirectionY = facingDirectionY;
             DialogText = "";
+            ObjectTalkingTo = objectTalkingTo;
+            Money = money;
         }
 
         public override void UpdateStats(GameObject o)

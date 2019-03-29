@@ -16,10 +16,10 @@ namespace Playerdom.Shared.Objects
     public class Player : GameObject
     {
         private DateTime bulletTimer;
+        private DateTime dropTimer;
 
 
-
-        public Player(Point position, Vector2 size, uint level = 1, uint xp = 0, uint speed = 8, bool isHalted = false, bool isSolid = true, uint health = 0, string displayName = "Player", ObjectType type = ObjectType.Player, DirectionY facingDirectionY = DirectionY.Center, DirectionX facingDirectionX = DirectionX.Center, bool isTalking = false, string dialogText = "")
+        public Player(Point position, Vector2 size, uint level = 1, uint xp = 0, uint speed = 8, bool isHalted = false, bool isSolid = true, uint health = 0, string displayName = "Player", ObjectType type = ObjectType.Player, DirectionY facingDirectionY = DirectionY.Center, DirectionX facingDirectionX = DirectionX.Center, bool isTalking = false, string dialogText = "", Guid? objectTalkingTo = null, decimal money = 0)
         {
             Position = position;
             IsSolid = isSolid;
@@ -35,7 +35,10 @@ namespace Playerdom.Shared.Objects
             FacingDirectionY = facingDirectionY;
             DialogText = dialogText;
             bulletTimer = DateTime.Now;
+            dropTimer = DateTime.Now;
             IsTalking = isTalking;
+            ObjectTalkingTo = objectTalkingTo;
+            Money = money;
         }
 
         public override void UpdateStats(GameObject o)
@@ -44,6 +47,7 @@ namespace Playerdom.Shared.Objects
                 throw new Exception("Type to update must be the same type as the original");
 
             bulletTimer = (o as Player).bulletTimer;
+
 
             base.UpdateStats(o);
         }
@@ -96,7 +100,30 @@ namespace Playerdom.Shared.Objects
                 Move((int)(Speed * Math.Cos(angle)), (int)(Speed * Math.Sin(angle)), map);
             }
 
-            if(ks.IsKeyDown(Keys.F) && DateTime.Now >= bulletTimer)
+
+            if (IsTalking)
+            {
+                if (ObjectTalkingTo != null && map.gameObjects.TryGetValue(ObjectTalkingTo.Value, out GameObject ott))
+                {
+                    Vector2 d = this.Distance(ott);
+                    if (Math.Abs(d.X) <= Tile.SIZE_X * 2 || Math.Abs(d.Y) <= Tile.SIZE_Y * 2)
+                    {
+
+                    }
+                    else
+                    {
+                        ott.ObjectTalkingTo = null;
+                        ObjectTalkingTo = null;
+                    }
+                }
+                else ObjectTalkingTo = null;
+            }
+
+
+
+
+
+            if (ks.IsKeyDown(Keys.F) && DateTime.Now >= bulletTimer)
             {
                 if(!(FacingDirectionX == DirectionX.Center && FacingDirectionY == DirectionY.Center))
                 {
@@ -144,12 +171,8 @@ namespace Playerdom.Shared.Objects
                         Vector2 d = Distance(go1.Value);
                         if (Math.Abs(d.X) <= Tile.SIZE_X * 2 && Math.Abs(d.Y) <= Tile.SIZE_Y * 2)
                         {
-                            go1.Value.ObjectTalkingTo = objectGuid;
-                            ObjectTalkingTo = go1.Key;
                             talkingToObject = true;
-
-                            Task.Run(async () => await DisplayDialogAsync("Hello " + go1.Value.DisplayName + "!"));
-                            break;
+                            go1.Value.StartConversation(new KeyValuePair<Guid, GameObject>(objectGuid, this), go1.Key);
                         }
                     }
                 }
@@ -192,6 +215,24 @@ namespace Playerdom.Shared.Objects
 
                     Task.Run(async () => await DisplayDialogAsync(text));
                 }
+            }
+
+            if(ks.IsKeyDown(Keys.Q) && DateTime.Now > dropTimer)
+            {
+
+                if(Money >= 1)
+                {
+                    map.gameEntities.TryAdd(Guid.NewGuid(), new MoneyDrop(new Point((int)(Position.X + Size.X / 2), (int)(Position.Y + Size.Y / 2)), new Vector2(32, 32), 1, this));
+                    Money -= 1;
+                }
+                else if(Money > 0)
+                {
+                    map.gameEntities.TryAdd(Guid.NewGuid(), new MoneyDrop(Position, new Vector2(32, 32), Money, this));
+                    Money = 0;
+                }
+                else if(!IsTalking)
+                    Task.Run(async () => await DisplayDialogAsync("Oh no! I'm out of money!"));
+                dropTimer = DateTime.Now.AddSeconds(0.50);
             }
 
             base.Update(time, map, ks, objectGuid);

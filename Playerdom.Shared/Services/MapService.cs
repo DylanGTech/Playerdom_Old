@@ -448,7 +448,7 @@ namespace Playerdom.Shared.Services
                 m.gameObjects.TryAdd(Guid.NewGuid(), new Enemy(new Point(r.Next(0, (int)Map.SIZE_X - 1) * (int)Tile.SIZE_X, r.Next(0, (int)Map.SIZE_Y - 1) * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
             }
 
-            m.gameObjects.TryAdd(Guid.NewGuid(), new Townsman(new Point(12 * (int)Tile.SIZE_X, 12 * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
+            m.gameObjects.TryAdd(Guid.NewGuid(), new Townsman(new Point(12 * (int)Tile.SIZE_X, 12 * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y), money: (decimal)5.0));
 
             Point endToStartAt = endPoints[r.Next(0, endPoints.Count - 1)];
             endToStartAt.X *= (int)Tile.SIZE_X;

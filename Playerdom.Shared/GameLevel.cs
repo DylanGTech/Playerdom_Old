@@ -294,20 +294,65 @@ namespace Playerdom.Shared
 
                 if (o.Value == null || o.Key == Guid.Empty)
                     continue;
+
                 if (o.Value.ActiveTexture == null) o.Value.LoadContent(Content, GraphicsDevice);
                 if (object.ReferenceEquals(o.Value, focusedObject.Value))
                 {
-                    o.Value.Draw(spriteBatch, GraphicsDevice, new Vector2(0,0));
+                    o.Value.DrawSprite(spriteBatch, GraphicsDevice, new Vector2(0,0));
                 }
                 else
                 {
+                    Vector2 d = focusedObject.Value.Distance(o.Value);
 
-                    Vector2 distance = focusedObject.Value.Distance(o.Value);
-                    o.Value.Draw(spriteBatch, GraphicsDevice, distance);
+                    if(Math.Abs((int)d.Length()) < 24 * Tile.SIZE_X)
+                    o.Value.DrawSprite(spriteBatch, GraphicsDevice, d);
                 }
 
             }
-            foreach(ButtonObject b in buttons)
+            foreach (KeyValuePair<Guid, GameObject> o in level.gameObjects)
+            {
+
+                if (o.Value == null || o.Key == Guid.Empty)
+                    continue;
+
+                if (o.Value.ActiveTexture == null) o.Value.LoadContent(Content, GraphicsDevice);
+                if (object.ReferenceEquals(o.Value, focusedObject.Value))
+                {
+                    o.Value.DrawTag(spriteBatch, GraphicsDevice, new Vector2(0, 0));
+                }
+                else
+                {
+                    Vector2 d = focusedObject.Value.Distance(o.Value);
+
+                    if (Math.Abs((int)d.Length()) < 24 * Tile.SIZE_X)
+                        o.Value.DrawTag(spriteBatch, GraphicsDevice, d);
+                }
+
+            }
+
+            foreach (KeyValuePair<Guid, GameObject> o in level.gameObjects)
+            {
+
+                if (o.Value == null || o.Key == Guid.Empty)
+                    continue;
+
+                if (o.Value.ActiveTexture == null) o.Value.LoadContent(Content, GraphicsDevice);
+                if (object.ReferenceEquals(o.Value, focusedObject.Value))
+                {
+                    o.Value.DrawDialog(spriteBatch, GraphicsDevice, new Vector2(0, 0));
+                }
+                else
+                {
+                    Vector2 d = focusedObject.Value.Distance(o.Value);
+
+                    if (Math.Abs((int)d.Length()) < 24 * Tile.SIZE_X)
+                        o.Value.DrawDialog(spriteBatch, GraphicsDevice, d);
+                }
+
+            }
+
+
+            foreach (ButtonObject b in buttons)
             {
                 if(b.Background == null) b.LoadContent(Content, GraphicsDevice);
                 b.Draw(spriteBatch, GraphicsDevice);
@@ -335,19 +380,19 @@ namespace Playerdom.Shared
 
         protected void DrawStats()
         {
-            spriteBatch.Draw(barBackground, new Rectangle(64 - 8, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 - 8, 384 + 16, 192 + 16), Color.White);
-            spriteBatch.Draw(uiBackground, new Rectangle(64, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192, 384, 192), Color.White);
+            spriteBatch.Draw(barBackground, new Rectangle(64 - 8, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 - 8, 512 + 16, 192 + 16), Color.White);
+            spriteBatch.Draw(uiBackground, new Rectangle(64, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192, 512, 192), Color.White);
 
-            spriteBatch.DrawString(font2, focusedObject.Value.DisplayName, new Vector2(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 16), Color.White);
+            spriteBatch.DrawString(font2, string.Format("{0} - Lvl {1} - {2:N2} Ruppies", focusedObject.Value.DisplayName, focusedObject.Value.Level, focusedObject.Value.Money), new Vector2(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 16), Color.White);
 
             spriteBatch.DrawString(font2, string.Format("Health: {0} / {1}", focusedObject.Value.Health, focusedObject.Value.MaxHealth), new Vector2(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 48), Color.White);
-            spriteBatch.Draw(barBackground, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 80, 384 - 32, 16), Color.White);
-            spriteBatch.Draw(hpBar, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 80, (int)((384 - 32) * ((double)focusedObject.Value.Health / (double)focusedObject.Value.MaxHealth)), 16), Color.White);
+            spriteBatch.Draw(barBackground, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 80, 512 - 32, 16), Color.White);
+            spriteBatch.Draw(hpBar, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 80, (int)((512 - 32) * ((double)focusedObject.Value.Health / (double)focusedObject.Value.MaxHealth)), 16), Color.White);
 
 
             spriteBatch.DrawString(font2, string.Format("Expereince: {0} / {1}", focusedObject.Value.XP, focusedObject.Value.MaxXP), new Vector2(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 108), Color.White);
-            spriteBatch.Draw(barBackground, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 144, 384 - 32, 16), Color.White);
-            spriteBatch.Draw(xpBar, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 144, (int)((384 - 32) * ((double)focusedObject.Value.XP / (double)focusedObject.Value.MaxXP)), 16), Color.White);
+            spriteBatch.Draw(barBackground, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 144, 512 - 32, 16), Color.White);
+            spriteBatch.Draw(xpBar, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 144, (int)((512 - 32) * ((double)focusedObject.Value.XP / (double)focusedObject.Value.MaxXP)), 16), Color.White);
 
 
         }

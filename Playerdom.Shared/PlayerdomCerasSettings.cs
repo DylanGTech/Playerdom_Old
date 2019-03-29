@@ -29,10 +29,8 @@ namespace Playerdom.Shared
 
             config.KnownTypes.Add(typeof(Entity));
             config.KnownTypes.Add(typeof(Bullet));
+            config.KnownTypes.Add(typeof(MoneyDrop));
 
-            //config.KnownTypes.Add(typeof(DirectionX));
-            //config.KnownTypes.Add(typeof(DirectionY));
-            //config.KnownTypes.Add(typeof(ObjectType));
             config.KnownTypes.Add(typeof(Vector2));
             config.KnownTypes.Add(typeof(Point));
             config.KnownTypes.Add(typeof(Rectangle));
@@ -55,10 +53,6 @@ namespace Playerdom.Shared
             config.KnownTypes.Add(typeof(Dictionary<Guid, Entity>));
             config.KnownTypes.Add(typeof(ConcurrentDictionary<Guid, GameObject>));
             config.KnownTypes.Add(typeof(ConcurrentDictionary<Guid, Entity>));
-            //config.KnownTypes.Add(typeof(Dictionary<Guid, GameObject>));
-            //config.KnownTypes.Add(typeof(Dictionary<Guid, Entity>));
-            //config.KnownTypes.Add(typeof(Dictionary<string, object>));
-            //config.KnownTypes.Add(typeof(Dictionary<Guid, Dictionary<string, object>>));
 
             config.KnownTypes.Add(typeof(KeyboardState));
 
@@ -66,6 +60,7 @@ namespace Playerdom.Shared
             config.ConfigType<Enemy>().ConstructBy(typeof(Enemy).GetConstructors()[0]);
             config.ConfigType<Townsman>().ConstructBy(typeof(Townsman).GetConstructors()[0]);
             config.ConfigType<Bullet>().ConstructBy(typeof(Bullet).GetConstructors()[0]);
+            config.ConfigType<MoneyDrop>().ConstructBy(typeof(MoneyDrop).GetConstructors()[0]);
             config.ConfigType<MapColumn>().ConstructBy(typeof(MapColumn).GetConstructors()[0]);
 
             config.ConfigType<Point>().ConstructBy(typeof(Point).GetConstructor(new Type[] { typeof(int), typeof(int) }));

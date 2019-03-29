@@ -14,7 +14,7 @@ namespace Playerdom.Shared.Objects
     public class Townsman : GameObject
     {
 
-        public Townsman(Point position, Vector2 size, uint level = 1, uint xp = 0, uint speed = 6, bool isHalted = false, bool isSolid = true, uint health = 0, string displayName = "Townsman", ObjectType type = ObjectType.NeutralNPC, DirectionY facingDirectionY = DirectionY.Center, DirectionX facingDirectionX = DirectionX.Center, bool isTalking = false, string dialogText = "")
+        public Townsman(Point position, Vector2 size, uint level = 1, uint xp = 0, uint speed = 6, bool isHalted = false, bool isSolid = true, uint health = 0, string displayName = "Townsman", ObjectType type = ObjectType.NeutralNPC, DirectionY facingDirectionY = DirectionY.Center, DirectionX facingDirectionX = DirectionX.Center, bool isTalking = false, string dialogText = "", Guid? objectTalkingTo = null, decimal money = 0)
         {
             Position = position;
             IsSolid = isSolid;
@@ -30,6 +30,8 @@ namespace Playerdom.Shared.Objects
             FacingDirectionY = facingDirectionY;
             DialogText = dialogText;
             IsTalking = isTalking;
+            ObjectTalkingTo = objectTalkingTo;
+            Money = money;
         }
 
         public override void UpdateStats(GameObject o)
@@ -65,6 +67,24 @@ namespace Playerdom.Shared.Objects
             }
             */
             base.Update(time, map, ks, objectGuid);
+        }
+
+
+        public override void StartConversation(KeyValuePair<Guid, GameObject> otherObject, Guid thisObjectId)
+        {
+            ObjectTalkingTo = otherObject.Key;
+            otherObject.Value.ObjectTalkingTo = thisObjectId;
+
+
+            Task.Run(async () => await otherObject.Value.DisplayDialogAsync("Hello " + DisplayName + "!"));
+
+
+            if(otherObject.Value.TransferMoney((decimal)0.50, this))
+                Task.Run(async () => await DisplayDialogAsync("Hello " + otherObject.Value.DisplayName + ". Take some Ruppies!"));
+            else
+                Task.Run(async () => await DisplayDialogAsync("Sorry " + otherObject.Value.DisplayName + ", I'm all out of money"));
+
+
         }
     }
 }

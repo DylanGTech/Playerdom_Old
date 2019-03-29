@@ -74,6 +74,18 @@ namespace Playerdom.Shared.Objects
             }
         }
 
+
+        protected decimal _money;
+
+        public decimal Money
+        {
+            get { return _money; }
+            protected set { _money = value; }
+        }
+
+
+
+
         protected Vector2 _size;
         public Microsoft.Xna.Framework.Vector2 Size
         {
@@ -250,37 +262,34 @@ namespace Playerdom.Shared.Objects
 
         public virtual void Update(GameTime time, Map map, KeyboardState ks, Guid objectGuid)
         {
-            if (IsTalking)
-            {
-                if (ObjectTalkingTo != null && map.gameObjects.TryGetValue(ObjectTalkingTo.Value, out GameObject ott))
-                {
-                    Vector2 d = this.Distance(ott);
-                    if (Math.Abs(d.X) <= Tile.SIZE_X * 2 || Math.Abs(d.Y) <= Tile.SIZE_Y * 2)
-                    {
-
-                    }
-                    else
-                    {
-                        ott.ObjectTalkingTo = null;
-                        ObjectTalkingTo = null;
-                    }
-                }
-                else ObjectTalkingTo = null;
-            }
+            
         }
-        public virtual void Draw(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset)
-        {
-            if (CanBeHurt || DateTime.Now.Ticks % 2 == 1)
-                spriteBatch.Draw(ActiveTexture, new Rectangle((int)((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X), (int)((device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y), (int)Size.X, (int)Size.Y), Color.White);
+        //public virtual void Draw(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset)
+        //{
+        //}
 
+        public virtual void DrawTag(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset)
+        {
             spriteBatch.DrawString(font, DisplayName + " [Lvl " + Level + "]", new Microsoft.Xna.Framework.Vector2((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X + (Size.X - font.MeasureString(DisplayName + " [Lvl " + Level + "]").X) / 2,
-                (device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y - font.MeasureString(DisplayName +" [Lvl " + Level + "]").Y - 16), Color.White);
+                (device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y - font.MeasureString(DisplayName + " [Lvl " + Level + "]").Y - 16), Color.White);
 
             spriteBatch.Draw(rect, new Rectangle((int)((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X), (int)((device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y) - 16, (int)Size.X, 20), Color.White);
             spriteBatch.Draw(background, new Rectangle((int)((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X) + 2, (int)((device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y) + 2 - 16, (int)Size.X - 4, 16), Color.White);
             if (Health > 0)
                 spriteBatch.Draw(bar, new Rectangle((int)((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X) + 2, (int)((device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y) + 2 - 16, (int)((Size.X - 4) * Health / MaxHealth), 16), Color.White);
 
+        }
+
+
+        public virtual void DrawSprite(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset)
+        {
+            if (CanBeHurt || DateTime.Now.Ticks % 2 == 1)
+                spriteBatch.Draw(ActiveTexture, new Rectangle((int)((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X), (int)((device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y), (int)Size.X, (int)Size.Y), Color.White);
+
+        }
+
+        public virtual void DrawDialog(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset)
+        {
             if (IsTalking)
             {
                 spriteBatch.Draw(dialogTexture, new Rectangle((int)((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X + (Size.X - font.MeasureString(DialogText).X) / 2) - 6,
@@ -291,6 +300,7 @@ namespace Playerdom.Shared.Objects
 
             }
         }
+
 
         public virtual void Move(int xOffset, int yOffset, Map map)
         {
@@ -363,7 +373,7 @@ namespace Playerdom.Shared.Objects
             {
                 XP = 0;
             }
-            else if (offset + XP > MaxHealth)
+            else if (offset + XP > MaxXP)
             {
                 XP = 0;
                 Level++;
@@ -401,6 +411,11 @@ namespace Playerdom.Shared.Objects
                 TakeDamage(5, m, (entity as Bullet).Sender);
                 entity.MarkedForDeletion = true;
             }
+            if(entity.GetType() == typeof(MoneyDrop) && (entity as MoneyDrop).Dropper != this)
+            {
+                Money += (entity as MoneyDrop).MoneyContained;
+                entity.MarkedForDeletion = true;
+            }
         }
 
         public void Dispose()
@@ -432,20 +447,30 @@ namespace Playerdom.Shared.Objects
             IsTalking = o.IsTalking;
             DialogText = o.DialogText;
             ObjectTalkingTo = o.ObjectTalkingTo;
+            Money = o.Money;
         }
 
-        public void ApplyDelta(Dictionary<string, byte[]> delta, CerasSerializer serializer)
+        public bool TransferMoney(decimal amount, GameObject fromObject = null)
         {
-            if(delta.Count > 0)
+            if (Money + amount < 0) return false;
+
+            if (fromObject == null)
+                Money += amount;
+            else if (fromObject.Money - amount < 0) return false;
+            else
             {
-                MethodInfo deserializeMethod = typeof(CerasSerializer).GetMethod("Deserialize", new Type[] { typeof(byte[]) });
-                foreach (KeyValuePair<string, byte[]> pair in delta)
-                {
-                    MethodInfo generic = deserializeMethod.MakeGenericMethod(this.GetType().GetProperty(pair.Key).PropertyType);
-                    this.GetType().GetProperty(pair.Key).SetValue(this, generic.Invoke(this, new object[] { pair.Value }));
-                }
+                Money += amount;
+                fromObject.Money -= amount;
             }
+
+            return true;
         }
+
+        public virtual void StartConversation(KeyValuePair<Guid, GameObject> otherObject, Guid thisObjectId)
+        {
+
+        }
+
     }
 
     public enum ObjectType : byte
