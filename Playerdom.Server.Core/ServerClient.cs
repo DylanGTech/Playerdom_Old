@@ -78,7 +78,6 @@ namespace Playerdom.Server
                     while (Program.clients.ContainsKey(this.EndPointString))
                     {
                         var obj = await _receiveCeras.ReadFromStream(_netStream);
-                        Log("Recieved client input");
                         HandleMessage(obj);
                     }
                 }
@@ -128,8 +127,6 @@ namespace Playerdom.Server
                                     {
                                         Send(lc);
 
-                                        Log("Sent column packet");
-
                                     }
                                 }
 
@@ -139,7 +136,6 @@ namespace Playerdom.Server
                                 Program.level.gameObjects.TryGetValue(FocusedObjectID, out GameObject g);
                                 Send(new KeyValuePair<Guid, GameObject>(FocusedObjectID, g));
 
-                                Log("Sent focused object");
 
                             }
 
@@ -148,13 +144,10 @@ namespace Playerdom.Server
                             {
                                 //All Objects
                                 Send(Program.level.gameObjects);
-                                Log("Sent game objects");
 
 
                                 //All Entities
                                 Send(Program.level.gameEntities);
-
-                                Log("Sent game entities");
                             }
 
                         }
@@ -196,7 +189,7 @@ namespace Playerdom.Server
 
         public void Send(object obj)
         {
-            //lock(_sendCeras)
+            if(Program.clients.ContainsKey(this.EndPointString))
                 _sendCeras.WriteToStream(_netStream, obj);
 
         }
