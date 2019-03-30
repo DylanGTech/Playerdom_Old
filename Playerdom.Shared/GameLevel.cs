@@ -153,7 +153,7 @@ namespace Playerdom.Shared
                 connectionWatch.Start();
                 while (focusedObject.Value == null)
                 {
-                    if(attempts > 60)
+                    if(attempts > 120)
                     {
                         throw new Exception("Connection Timed Out");
                     }

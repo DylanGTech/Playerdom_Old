@@ -46,7 +46,7 @@ namespace Playerdom.Shared.Entities
         }
         public override void Draw(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset)
         {
-            spriteBatch.Draw(ActiveTexture, new Rectangle((int)((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X), (int)((device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y), (int)Size.X, (int)Size.Y), Color.Red);
+            spriteBatch.Draw(ActiveTexture, new Rectangle((int)((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X), (int)((device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y), (int)Size.X, (int)Size.Y), Color.White);
         }
 
         public override void UpdateStats(Entity e)

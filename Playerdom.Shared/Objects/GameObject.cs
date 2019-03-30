@@ -262,6 +262,11 @@ namespace Playerdom.Shared.Objects
 
         public virtual void Update(GameTime time, Map map, KeyboardState ks, Guid objectGuid)
         {
+            if(ObjectTalkingTo != null)
+            {
+                if (!map.gameObjects.TryGetValue(ObjectTalkingTo.Value, out GameObject go) || Math.Abs(Distance(go).Length()) > Tile.SIZE_X * 3)
+                    ObjectTalkingTo = null;
+            }
             
         }
         //public virtual void Draw(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset)
