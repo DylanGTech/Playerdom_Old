@@ -84,13 +84,14 @@ namespace Playerdom.Shared
             graphics = new GraphicsDeviceManager(this);
 
 #if !WINDOWS_UAP
-            graphics.PreferredBackBufferWidth = 1920;
-            graphics.PreferredBackBufferHeight = 1080;
+            graphics.PreferredBackBufferWidth = 1600; ///Ashley:  Suggest 1600x1024 in case the window overlaps the Windows taskbar, which happens to me, and can't resize it.
+            graphics.PreferredBackBufferHeight = 900;
 #endif
             this.IsMouseVisible = true;
             Content.RootDirectory = "Content";
 
-            _tcpClient = new TcpClient();
+            ///Ashley: A TCP client is already initialised later ahead.
+            ///_tcpClient = new TcpClient();
 
         }
 
@@ -153,12 +154,12 @@ namespace Playerdom.Shared
                 connectionWatch.Start();
                 while (focusedObject.Value == null)
                 {
-                    if(attempts > 120)
+                    if(attempts >= 55) ///Ashley: Reduce attempts to 55 attempts to prevent running the risk of rate limited by ISPs, firewalls, or routors.
                     {
                         throw new Exception("Connection Timed Out");
                     }
 
-                    if(connectionWatch.ElapsedMilliseconds > 1000)
+                    if(connectionWatch.ElapsedMilliseconds >= 1000)
                     {
                         attempts++;
                         connectionWatch.Restart();
@@ -233,6 +234,7 @@ namespace Playerdom.Shared
         /// UnloadContent will be called once per game and is the place to unload
         /// game-specific content.
         /// </summary>
+        /*
         protected override void UnloadContent()
         {
             try
@@ -244,6 +246,8 @@ namespace Playerdom.Shared
 
             }
         }
+        */
+        ///Ashley: The block above does not do anything. Commented out.
 
         protected bool isHoldingTab = false;
         protected DateTime lastUpdate = DateTime.Now;
@@ -400,7 +404,7 @@ namespace Playerdom.Shared
 
         protected void DrawMap()
         {
-
+            Thread.Sleep(15);
 
             ushort YTilePosition = (ushort)(focusedObject.Value.Position.Y / Tile.SIZE_Y);
             ushort XTilePosition = (ushort)(focusedObject.Value.Position.X / Tile.SIZE_X);

@@ -55,7 +55,7 @@ namespace Playerdom.Shared
             config.KnownTypes.Add(typeof(ConcurrentDictionary<Guid, Entity>));
 
             config.KnownTypes.Add(typeof(KeyboardState));
-
+            
             config.ConfigType<Player>().ConstructBy(typeof(Player).GetConstructors()[0]);
             config.ConfigType<Enemy>().ConstructBy(typeof(Enemy).GetConstructors()[0]);
             config.ConfigType<Townsman>().ConstructBy(typeof(Townsman).GetConstructors()[0]);
