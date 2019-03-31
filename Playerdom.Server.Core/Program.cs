@@ -29,7 +29,9 @@ namespace Playerdom.Server
 
         static void AcceptClients()
         {
-            TcpListener listener = new TcpListener(IPAddress.Any, 25565);
+            Int32 port = 25565;
+            IPAddress _ConnectIP = IPAddress.Any;
+            TcpListener listener = new TcpListener(_ConnectIP, port);
             listener.Start();
 
             while (true)

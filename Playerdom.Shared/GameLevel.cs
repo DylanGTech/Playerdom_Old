@@ -103,7 +103,7 @@ namespace Playerdom.Shared
         protected override void Initialize()
         {
             PlayerdomCerasSettings.Initialize();
-            string ip = "localhost";
+            string ip = "localhost";  
 #if WINDOWS_UAP
             try
             {
@@ -112,6 +112,7 @@ namespace Playerdom.Shared
 
                 ip = File.ReadAllText(file.Path);
             }
+            
             catch(Exception e)
             {
                 StorageFile file;
@@ -125,12 +126,14 @@ namespace Playerdom.Shared
 #elif WINDOWS
             try
             {
-                ip = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "\\connection.txt");
+                
+                ip = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "connection.txt");
             }
             catch (Exception e)
             {
-                File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "\\connection.txt", ip);
                 ip = "localhost";
+                File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "connection.txt", ip);
+                
             }
 #endif
             _tcpClient = new TcpClient();
@@ -153,9 +156,11 @@ namespace Playerdom.Shared
                 connectionWatch.Start();
                 while (focusedObject.Value == null)
                 {
-                    if(attempts > 120)
+                    if(attempts > 35) ///Ashley: 120 attempts are too many. This will try 35 times which is 35 seconds. Some routers or firewalls may blacklist your IP for DoS attacks
                     {
-                        throw new Exception("Connection Timed Out");
+                    Console.WriteLine("Connection Timed Out"); ///Ashley: Just in case. Remove it deemed unnecessary 
+                    throw new Exception("Connection Timed Out");
+                        
                     }
 
                     if(connectionWatch.ElapsedMilliseconds > 1000)
@@ -233,6 +238,8 @@ namespace Playerdom.Shared
         /// UnloadContent will be called once per game and is the place to unload
         /// game-specific content.
         /// </summary>
+        ///Ashley: Comment out this to prevent function from executing if there is nothing to do in here.
+        /*
         protected override void UnloadContent()
         {
             try
@@ -244,6 +251,7 @@ namespace Playerdom.Shared
 
             }
         }
+        */
 
         protected bool isHoldingTab = false;
         protected DateTime lastUpdate = DateTime.Now;

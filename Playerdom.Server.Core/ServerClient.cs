@@ -22,8 +22,6 @@ namespace Playerdom.Server
         readonly CerasSerializer _sendCeras;
         readonly CerasSerializer _receiveCeras;
 
-
-
         public string EndPointString
         {
             get { return _tcpClient.Client.RemoteEndPoint.ToString(); }
@@ -41,6 +39,8 @@ namespace Playerdom.Server
 
         public ServerClient(TcpClient tcpClient)
         {
+
+
             _tcpClient = tcpClient;
             _netStream = tcpClient.GetStream();
 
@@ -92,7 +92,7 @@ namespace Playerdom.Server
 
         void StartSendingMessages()
         {
-            Task.Run(async () =>
+            Task.Run(() =>
             {
                 while (Program.clients.ContainsKey(this.EndPointString))
                 {
