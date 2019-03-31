@@ -12,6 +12,12 @@ Stage: Classic
 
 **PngToPldms**: A .NET Core command that converts PNG schematics into the Playerdom Structure format (pldms), a custom file type that can be loaded into the game when generating worlds
 
+----
+
+**Getting build errors about missing freetype6.dll?**: You're missing Visual Studio Redist 2012. Download here: https://www.microsoft.com/en-us/download/details.aspx?id=30679
+
+This project is built on MonoGame. You may need to download and install it to build: http://www.monogame.net/downloads/
+
 Welcome to Playerdom!
 
 Disclaimer: This is early in development, and is primarily a side project. Pull Requests with bug fixes and efficiency upgrades are always welcome! If you wish to become more involved and develop new featrues, graphics, content, algorithms, etc, get ahold of @Dylan-P-Green and open an Issue
