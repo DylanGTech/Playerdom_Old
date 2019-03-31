@@ -18,6 +18,16 @@ Stage: Classic
 
 This project is built on MonoGame. You may need to download and install it to build: http://www.monogame.net/downloads/
 
+----
+
+**How do I host a server?!?!**:
+Open command prompt to ..\Playerdom-master\Playerdom.Server.Core\bin\Release\netcoreapp2.2\
+Type in `dotnet.exe .\Playerdom.Server.Core.dll`
+If you see "Playerdom Test Server", you have started the server on port 25565.
+
+**Why does nothing happen when I run the executable?!?!**:
+You need a valid server to connect to otherwise it will throw an internal exception and quit. See above. Then put the IP address in `connection.txt`. Do not put the port. It is configured to connect to the IP via 25565 by default.
+
 Welcome to Playerdom!
 
 Disclaimer: This is early in development, and is primarily a side project. Pull Requests with bug fixes and efficiency upgrades are always welcome! If you wish to become more involved and develop new featrues, graphics, content, algorithms, etc, get ahold of @Dylan-P-Green and open an Issue
