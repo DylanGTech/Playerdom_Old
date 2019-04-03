@@ -15,7 +15,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Entities\Bullet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Objects\Enemy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Objects\GameObject.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)GUIs\ButtonObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Objects\Player.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Objects\Townsman.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PlayerdomCerasSettings.cs" />

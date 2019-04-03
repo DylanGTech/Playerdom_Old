@@ -53,7 +53,7 @@ namespace Playerdom.Shared.Entities
         {
 
         }
-        public virtual void Draw(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset)
+        public virtual void Draw(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset, RenderTarget2D target)
         {
 
         }

@@ -273,35 +273,35 @@ namespace Playerdom.Shared.Objects
         //{
         //}
 
-        public virtual void DrawTag(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset)
+        public virtual void DrawTag(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset, RenderTarget2D target)
         {
-            spriteBatch.DrawString(font, DisplayName + " [Lvl " + Level + "]", new Microsoft.Xna.Framework.Vector2((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X + (Size.X - font.MeasureString(DisplayName + " [Lvl " + Level + "]").X) / 2,
-                (device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y - font.MeasureString(DisplayName + " [Lvl " + Level + "]").Y - 16), Color.White);
+            spriteBatch.DrawString(font, DisplayName + " [Lvl " + Level + "]", new Microsoft.Xna.Framework.Vector2((target.Width / 2) - (Size.X / 2) - centerOffset.X + (Size.X - font.MeasureString(DisplayName + " [Lvl " + Level + "]").X) / 2,
+                (target.Height / 2) - (Size.Y / 2) - centerOffset.Y - font.MeasureString(DisplayName + " [Lvl " + Level + "]").Y - 16), Color.White);
 
-            spriteBatch.Draw(rect, new Rectangle((int)((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X), (int)((device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y) - 16, (int)Size.X, 20), Color.White);
-            spriteBatch.Draw(background, new Rectangle((int)((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X) + 2, (int)((device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y) + 2 - 16, (int)Size.X - 4, 16), Color.White);
+            spriteBatch.Draw(rect, new Rectangle((int)((target.Width / 2) - (Size.X / 2) - centerOffset.X), (int)((target.Height / 2) - (Size.Y / 2) - centerOffset.Y) - 16, (int)Size.X, 20), Color.White);
+            spriteBatch.Draw(background, new Rectangle((int)((target.Width / 2) - (Size.X / 2) - centerOffset.X) + 2, (int)((target.Height / 2) - (Size.Y / 2) - centerOffset.Y) + 2 - 16, (int)Size.X - 4, 16), Color.White);
             if (Health > 0)
-                spriteBatch.Draw(bar, new Rectangle((int)((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X) + 2, (int)((device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y) + 2 - 16, (int)((Size.X - 4) * Health / MaxHealth), 16), Color.White);
+                spriteBatch.Draw(bar, new Rectangle((int)((target.Width / 2) - (Size.X / 2) - centerOffset.X) + 2, (int)((target.Height / 2) - (Size.Y / 2) - centerOffset.Y) + 2 - 16, (int)((Size.X - 4) * Health / MaxHealth), 16), Color.White);
 
         }
 
 
-        public virtual void DrawSprite(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset)
+        public virtual void DrawSprite(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset, RenderTarget2D target)
         {
             if (CanBeHurt || DateTime.Now.Ticks % 2 == 1)
-                spriteBatch.Draw(ActiveTexture, new Rectangle((int)((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X), (int)((device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y), (int)Size.X, (int)Size.Y), Color.White);
+                spriteBatch.Draw(ActiveTexture, new Rectangle((int)((target.Width / 2) - (Size.X / 2) - centerOffset.X), (int)((target.Height / 2) - (Size.Y / 2) - centerOffset.Y), (int)Size.X, (int)Size.Y), Color.White);
 
         }
 
-        public virtual void DrawDialog(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset)
+        public virtual void DrawDialog(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset, RenderTarget2D target)
         {
             if (IsTalking)
             {
-                spriteBatch.Draw(dialogTexture, new Rectangle((int)((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X + (Size.X - font.MeasureString(DialogText).X) / 2) - 6,
-                    (int)((device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y - font.MeasureString(DialogText).Y - 12 - 60), (int)font.MeasureString(DialogText).X + 12, (int)font.MeasureString(DialogText).Y + 12), Color.White);
+                spriteBatch.Draw(dialogTexture, new Rectangle((int)((target.Width / 2) - (Size.X / 2) - centerOffset.X + (Size.X - font.MeasureString(DialogText).X) / 2) - 6,
+                    (int)((target.Height / 2) - (Size.Y / 2) - centerOffset.Y - font.MeasureString(DialogText).Y - 12 - 60), (int)font.MeasureString(DialogText).X + 12, (int)font.MeasureString(DialogText).Y + 12), Color.White);
 
-                spriteBatch.DrawString(font, DialogText, new Vector2((device.PresentationParameters.BackBufferWidth / 2) - (Size.X / 2) - centerOffset.X + (Size.X - font.MeasureString(DialogText).X) / 2,
-                        (device.PresentationParameters.BackBufferHeight / 2) - (Size.Y / 2) - centerOffset.Y - font.MeasureString(DialogText).Y - 4 - 60), Color.Black);
+                spriteBatch.DrawString(font, DialogText, new Vector2((target.Width / 2) - (Size.X / 2) - centerOffset.X + (Size.X - font.MeasureString(DialogText).X) / 2,
+                        (target.Height / 2) - (Size.Y / 2) - centerOffset.Y - font.MeasureString(DialogText).Y - 4 - 60), Color.Black);
 
             }
         }
@@ -350,7 +350,7 @@ namespace Playerdom.Shared.Objects
                 {
                     Health = 0;
                     Die(m);
-                    if(causer != null)
+                    if(causer != null && causer != this)
                     {
                         causer.ChangeXP((int)Level * 4);
                     }

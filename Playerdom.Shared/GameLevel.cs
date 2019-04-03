@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Playerdom.Shared.Objects;
-using Playerdom.Shared.GUIs;
 using Playerdom.Shared.Services;
 using Playerdom.Shared.Entities;
 using System;
@@ -39,6 +38,8 @@ namespace Playerdom.Shared
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        RenderTarget2D target;
+
 
         Texture2D groundTexture;
         Texture2D grassTexture;
@@ -68,9 +69,6 @@ namespace Playerdom.Shared
         static NetworkStream _netStream;
         static CerasSerializer _sendCeras;
         static CerasSerializer _receiveCeras;
-
-
-        List<ButtonObject> buttons = new List<ButtonObject>();
 
         static KeyValuePair<Guid, GameObject> focusedObject = new KeyValuePair<Guid, GameObject>(Guid.Empty, null);
 
@@ -203,7 +201,7 @@ namespace Playerdom.Shared
                 bricksTexture = Content.Load<Texture2D>("bricks");
                 woodFlooringTexture = Content.Load<Texture2D>("wood-flooring");
 
-
+                target = new RenderTarget2D(GraphicsDevice, 3840, 2160, false, SurfaceFormat.Color, DepthFormat.None);
 
                 uiBackground = new Texture2D(GraphicsDevice, 1, 1);
                 xpBar = new Texture2D(GraphicsDevice, 1, 1);
@@ -281,7 +279,8 @@ namespace Playerdom.Shared
         protected override void Draw(GameTime gameTime)
         {
 
-            GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.SetRenderTarget(target);
+            GraphicsDevice.Clear(new Color(31, 31, 31));
 
             spriteBatch.Begin();
             DrawMap();
@@ -290,7 +289,7 @@ namespace Playerdom.Shared
             {
                 if (e.Value.ActiveTexture == null) e.Value.LoadContent(Content, GraphicsDevice);
                 Vector2 distance = focusedObject.Value.Distance(e.Value);
-                e.Value.Draw(spriteBatch, GraphicsDevice, distance);
+                e.Value.Draw(spriteBatch, GraphicsDevice, distance, target);
             }
 
             foreach(KeyValuePair<Guid, GameObject> o in level.gameObjects)
@@ -302,14 +301,14 @@ namespace Playerdom.Shared
                 if (o.Value.ActiveTexture == null) o.Value.LoadContent(Content, GraphicsDevice);
                 if (object.ReferenceEquals(o.Value, focusedObject.Value))
                 {
-                    o.Value.DrawSprite(spriteBatch, GraphicsDevice, new Vector2(0,0));
+                    o.Value.DrawSprite(spriteBatch, GraphicsDevice, new Vector2(0,0), target);
                 }
                 else
                 {
                     Vector2 d = focusedObject.Value.Distance(o.Value);
 
                     if(Math.Abs((int)d.Length()) < 24 * Tile.SIZE_X)
-                    o.Value.DrawSprite(spriteBatch, GraphicsDevice, d);
+                    o.Value.DrawSprite(spriteBatch, GraphicsDevice, d, target);
                 }
 
             }
@@ -322,14 +321,14 @@ namespace Playerdom.Shared
                 if (o.Value.ActiveTexture == null) o.Value.LoadContent(Content, GraphicsDevice);
                 if (object.ReferenceEquals(o.Value, focusedObject.Value))
                 {
-                    o.Value.DrawTag(spriteBatch, GraphicsDevice, new Vector2(0, 0));
+                    o.Value.DrawTag(spriteBatch, GraphicsDevice, new Vector2(0, 0), target);
                 }
                 else
                 {
                     Vector2 d = focusedObject.Value.Distance(o.Value);
 
                     if (Math.Abs((int)d.Length()) < 24 * Tile.SIZE_X)
-                        o.Value.DrawTag(spriteBatch, GraphicsDevice, d);
+                        o.Value.DrawTag(spriteBatch, GraphicsDevice, d, target);
                 }
 
             }
@@ -343,36 +342,57 @@ namespace Playerdom.Shared
                 if (o.Value.ActiveTexture == null) o.Value.LoadContent(Content, GraphicsDevice);
                 if (object.ReferenceEquals(o.Value, focusedObject.Value))
                 {
-                    o.Value.DrawDialog(spriteBatch, GraphicsDevice, new Vector2(0, 0));
+                    o.Value.DrawDialog(spriteBatch, GraphicsDevice, new Vector2(0, 0), target);
                 }
                 else
                 {
                     Vector2 d = focusedObject.Value.Distance(o.Value);
 
                     if (Math.Abs((int)d.Length()) < 24 * Tile.SIZE_X)
-                        o.Value.DrawDialog(spriteBatch, GraphicsDevice, d);
+                        o.Value.DrawDialog(spriteBatch, GraphicsDevice, d, target);
                 }
 
-            }
-
-
-            foreach (ButtonObject b in buttons)
-            {
-                if(b.Background == null) b.LoadContent(Content, GraphicsDevice);
-                b.Draw(spriteBatch, GraphicsDevice);
             }
 
 #if DEBUG
             spriteBatch.DrawString(font, "X: " + focusedObject.Value.Position.X, new Vector2(0, 0), Color.Red);
                 spriteBatch.DrawString(font, "Y: " + focusedObject.Value.Position.Y, new Vector2(384, 0), Color.Red);
 #endif
-                spriteBatch.DrawString(font2, WATERMARK, new Vector2(0, GraphicsDevice.PresentationParameters.BackBufferHeight - 48), Color.White);
+                spriteBatch.DrawString(font2, WATERMARK, new Vector2(0, target.Height - 48), Color.White);
 
 
             DrawStats();
 
             base.Draw(gameTime);
 
+            spriteBatch.End();
+
+            GraphicsDevice.SetRenderTarget(null);
+            spriteBatch.Begin();
+
+
+
+            double preferredAspect = target.Width / (double)target.Height;
+            double outputAspect = Window.ClientBounds.Width / (double)Window.ClientBounds.Height;
+
+
+            Rectangle destination;
+            if (outputAspect <= preferredAspect)
+            {
+                // output is taller than it is wider, bars on top/bottom
+                int presentHeight = (int)((Window.ClientBounds.Width / preferredAspect) + 0.5f);
+                int barHeight = (Window.ClientBounds.Height - presentHeight) / 2;
+                destination = new Rectangle(0, barHeight, Window.ClientBounds.Width, presentHeight);
+            }
+            else
+            {
+                // output is wider than it is tall, bars left/right
+                int presentWidth = (int)((Window.ClientBounds.Height * preferredAspect) + 0.5f);
+                int barWidth = (Window.ClientBounds.Width - presentWidth) / 2;
+                destination = new Rectangle(barWidth, 0, presentWidth, Window.ClientBounds.Height);
+            }
+
+            spriteBatch.Draw(target, destination, Color.White);
             spriteBatch.End();
         }
 
@@ -384,19 +404,19 @@ namespace Playerdom.Shared
 
         protected void DrawStats()
         {
-            spriteBatch.Draw(barBackground, new Rectangle(64 - 8, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 - 8, 512 + 16, 192 + 16), Color.White);
-            spriteBatch.Draw(uiBackground, new Rectangle(64, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192, 512, 192), Color.White);
+            spriteBatch.Draw(barBackground, new Rectangle(64 - 8, target.Height - 64 - 192 - 8, 512 + 16, 192 + 16), Color.White);
+            spriteBatch.Draw(uiBackground, new Rectangle(64, target.Height - 64 - 192, 512, 192), Color.White);
 
-            spriteBatch.DrawString(font2, string.Format("{0} - Lvl {1} - {2:N2} Ruppies", focusedObject.Value.DisplayName, focusedObject.Value.Level, focusedObject.Value.Money), new Vector2(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 16), Color.White);
+            spriteBatch.DrawString(font2, string.Format("{0} - Lvl {1} - {2:N2} Ruppies", focusedObject.Value.DisplayName, focusedObject.Value.Level, focusedObject.Value.Money), new Vector2(64 + 16, target.Height - 64 - 192 + 16), Color.White);
 
-            spriteBatch.DrawString(font2, string.Format("Health: {0} / {1}", focusedObject.Value.Health, focusedObject.Value.MaxHealth), new Vector2(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 48), Color.White);
-            spriteBatch.Draw(barBackground, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 80, 512 - 32, 16), Color.White);
-            spriteBatch.Draw(hpBar, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 80, (int)((512 - 32) * ((double)focusedObject.Value.Health / (double)focusedObject.Value.MaxHealth)), 16), Color.White);
+            spriteBatch.DrawString(font2, string.Format("Health: {0} / {1}", focusedObject.Value.Health, focusedObject.Value.MaxHealth), new Vector2(64 + 16, target.Height - 64 - 192 + 48), Color.White);
+            spriteBatch.Draw(barBackground, new Rectangle(64 + 16, target.Height - 64 - 192 + 80, 512 - 32, 16), Color.White);
+            spriteBatch.Draw(hpBar, new Rectangle(64 + 16, target.Height - 64 - 192 + 80, (int)((512 - 32) * ((double)focusedObject.Value.Health / (double)focusedObject.Value.MaxHealth)), 16), Color.White);
 
 
-            spriteBatch.DrawString(font2, string.Format("Expereince: {0} / {1}", focusedObject.Value.XP, focusedObject.Value.MaxXP), new Vector2(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 108), Color.White);
-            spriteBatch.Draw(barBackground, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 144, 512 - 32, 16), Color.White);
-            spriteBatch.Draw(xpBar, new Rectangle(64 + 16, GraphicsDevice.PresentationParameters.BackBufferHeight - 64 - 192 + 144, (int)((512 - 32) * ((double)focusedObject.Value.XP / (double)focusedObject.Value.MaxXP)), 16), Color.White);
+            spriteBatch.DrawString(font2, string.Format("Expereince: {0} / {1}", focusedObject.Value.XP, focusedObject.Value.MaxXP), new Vector2(64 + 16, target.Height - 64 - 192 + 108), Color.White);
+            spriteBatch.Draw(barBackground, new Rectangle(64 + 16, target.Height - 64 - 192 + 144, 512 - 32, 16), Color.White);
+            spriteBatch.Draw(xpBar, new Rectangle(64 + 16, target.Height - 64 - 192 + 144, (int)((512 - 32) * ((double)focusedObject.Value.XP / (double)focusedObject.Value.MaxXP)), 16), Color.White);
 
 
         }
@@ -424,8 +444,8 @@ namespace Playerdom.Shared
             {
                 for (int x = xmin; x < xmax; x++)
                 {
-                    int positionX = (int)(x * Tile.SIZE_X - focusedObject.Value.Position.X + GraphicsDevice.PresentationParameters.BackBufferWidth / 2 - focusedObject.Value.Size.X / 2);
-                    int positionY = (int)(y * Tile.SIZE_Y - focusedObject.Value.Position.Y + GraphicsDevice.PresentationParameters.BackBufferHeight / 2 - focusedObject.Value.Size.Y / 2);
+                    int positionX = (int)(x * Tile.SIZE_X - focusedObject.Value.Position.X + target.Width / 2 - focusedObject.Value.Size.X / 2);
+                    int positionY = (int)(y * Tile.SIZE_Y - focusedObject.Value.Position.Y + target.Height / 2 - focusedObject.Value.Size.Y / 2);
 
                     if (level.tiles[x, y].typeID == 1)
                     {
