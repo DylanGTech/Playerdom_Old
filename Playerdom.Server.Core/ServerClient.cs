@@ -203,7 +203,7 @@ namespace Playerdom.Server
 
         static void LogServerException(Exception e)
         {
-            string logPath = Environment.CurrentDirectory + "\\Logs\\error_" + DateTime.Now.ToString();
+            string logPath = Environment.CurrentDirectory + "\\Logs\\error_" + DateTime.Now.ToString("yyyy-MM-dd_hh-mm-ss-tt") + ".txt";
 
             if (!Directory.Exists(Environment.CurrentDirectory + "\\Logs"))
                 Directory.CreateDirectory(Environment.CurrentDirectory + "\\Logs");
@@ -213,6 +213,8 @@ namespace Playerdom.Server
             logWriter.WriteLine(e.GetType().ToString());
             logWriter.WriteLine(e.Message);
             logWriter.WriteLine(e.StackTrace);
+            logWriter.Close();
+            logFile.Close();
             logWriter.Dispose();
         }
     }
