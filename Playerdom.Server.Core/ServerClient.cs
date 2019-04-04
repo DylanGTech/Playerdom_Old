@@ -203,10 +203,10 @@ namespace Playerdom.Server
 
         static void LogServerException(Exception e)
         {
-            string logPath = System.AppContext.BaseDirectory + "\\Logs\\error_" + DateTime.Now.ToString();
+            string logPath = Environment.CurrentDirectory + "\\Logs\\error_" + DateTime.Now.ToString();
 
-            if (!System.IO.Directory.Exists(System.AppContext.BaseDirectory + "\\Logs"))
-                System.IO.Directory.CreateDirectory(System.AppContext.BaseDirectory + "\\Logs");
+            if (!Directory.Exists(Environment.CurrentDirectory + "\\Logs"))
+                Directory.CreateDirectory(Environment.CurrentDirectory + "\\Logs");
 
             FileStream logFile = System.IO.File.Create(logPath);
             StreamWriter logWriter = new System.IO.StreamWriter(logFile);
