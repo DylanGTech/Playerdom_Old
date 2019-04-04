@@ -7,6 +7,7 @@ using Playerdom.Shared.Objects;
 using Playerdom.Shared.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -85,6 +86,7 @@ namespace Playerdom.Server
                 {
                     if (!Program.leavingPlayers.Contains(EndPointString))
                         Program.leavingPlayers.Enqueue(EndPointString);
+                    LogServerException(e);
                 }
             });
         }
@@ -157,8 +159,10 @@ namespace Playerdom.Server
                         //Log($"Error while handling client '{_tcpClient.Client.RemoteEndPoint}': {e}");
                         if (!Program.leavingPlayers.Contains(EndPointString))
                             Program.leavingPlayers.Enqueue(EndPointString);
+
+                        LogServerException(e);
                     }
-                    
+
 
                     Thread.Sleep(20);
                 }
@@ -192,6 +196,24 @@ namespace Playerdom.Server
             if(Program.clients.ContainsKey(this.EndPointString))
                 _sendCeras.WriteToStream(_netStream, obj);
 
+        }
+
+
+
+
+        static void LogServerException(Exception e)
+        {
+            string logPath = System.AppContext.BaseDirectory + "\\Logs\\error_" + DateTime.Now.ToString();
+
+            if (!System.IO.Directory.Exists(System.AppContext.BaseDirectory + "\\Logs"))
+                System.IO.Directory.CreateDirectory(System.AppContext.BaseDirectory + "\\Logs");
+
+            FileStream logFile = System.IO.File.Create(logPath);
+            StreamWriter logWriter = new System.IO.StreamWriter(logFile);
+            logWriter.WriteLine(e.GetType().ToString());
+            logWriter.WriteLine(e.Message);
+            logWriter.WriteLine(e.StackTrace);
+            logWriter.Dispose();
         }
     }
 }
