@@ -54,7 +54,7 @@ namespace Playerdom.Server
                     {
                         sc.Value.InitializePlayer();
                     }
-                    if(sc.Value.LastUpdate.AddSeconds(10) <= DateTime.Now)
+                    if(sc.Value.LastUpdate.AddSeconds(30) <= DateTime.Now)
                     {
                         if(!leavingPlayers.Contains(sc.Value.EndPointString))
                             leavingPlayers.Enqueue(sc.Value.EndPointString);

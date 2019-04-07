@@ -67,8 +67,6 @@ namespace Playerdom.Shared
 
         static TcpClient _tcpClient;
         static NetworkStream _netStream;
-        static CerasSerializer _sendCeras;
-        static CerasSerializer _receiveCeras;
 
         static KeyValuePair<Guid, GameObject> focusedObject = new KeyValuePair<Guid, GameObject>(Guid.Empty, null);
 
@@ -82,14 +80,12 @@ namespace Playerdom.Shared
             graphics = new GraphicsDeviceManager(this);
 
 #if !WINDOWS_UAP
-            graphics.PreferredBackBufferWidth = 1600; ///Ashley:  Suggest 1600x1024 in case the window overlaps the Windows taskbar, which happens to me, and can't resize it.
+            graphics.PreferredBackBufferWidth = 1600; 
             graphics.PreferredBackBufferHeight = 900;
 #endif
             this.IsMouseVisible = true;
             Content.RootDirectory = "Content";
 
-            ///Ashley: A TCP client is already initialised later ahead.
-            ///_tcpClient = new TcpClient();
 
         }
 
@@ -133,26 +129,26 @@ namespace Playerdom.Shared
             }
 #endif
             _tcpClient = new TcpClient();
-            _tcpClient.Connect(ip, 25565);
+            _tcpClient.Connect(IPAddress.Parse(ip), 25565);
             _netStream = _tcpClient.GetStream();
 
-            _sendCeras = new CerasSerializer(PlayerdomCerasSettings.config);
-            _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.config);
 
             level = new Map();
 
             level.tiles = new Tile[Map.SIZE_X, Map.SIZE_Y];
 
-            new Thread(() => ReceiveOutputAsync()).Start();
+            Thread newThread = new Thread(() => ReceiveOutputAsync());
+            newThread.Name = "HandlingThread";
+            newThread.Start();
 
 
                 Stopwatch connectionWatch = new Stopwatch();
                 byte attempts = 0;
 
-                connectionWatch.Start();
+            connectionWatch.Start();
                 while (focusedObject.Value == null)
                 {
-                    if(attempts >= 55) ///Ashley: Reduce attempts to 55 attempts to prevent running the risk of rate limited by ISPs, firewalls, or routors.
+                    if(attempts >= 55)
                     {
                         throw new Exception("Connection Timed Out");
                     }
@@ -165,13 +161,16 @@ namespace Playerdom.Shared
                 }
                 connectionWatch.Stop();
 
-
             Timer t = new Timer(15);
 
+            CerasSerializer _keyboardSerializer = null;
             t.Elapsed += (object sender, ElapsedEventArgs e) =>
             {
-                lock(_sendCeras)
-                    _sendCeras.WriteToStream(_netStream, Keyboard.GetState());
+                if (_keyboardSerializer == null)
+                    _keyboardSerializer = new CerasSerializer(PlayerdomCerasSettings.config);
+
+                //lock(_keyboardSerializer)
+                    _keyboardSerializer.WriteToStream(_netStream, Keyboard.GetState());
             };
 
             t.Start();
@@ -245,7 +244,6 @@ namespace Playerdom.Shared
             }
         }
         */
-        ///Ashley: The block above does not do anything. Commented out.
 
         protected bool isHoldingTab = false;
         protected DateTime lastUpdate = DateTime.Now;
@@ -500,11 +498,11 @@ namespace Playerdom.Shared
 
         static async void ReceiveOutputAsync()
         {
-
+            CerasSerializer _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.config);
+            CerasSerializer _sendCeras = new CerasSerializer(PlayerdomCerasSettings.config);
             while (true)
             {
-                var obj = await _receiveCeras.ReadFromStream(_netStream);
-
+                object obj = await _receiveCeras.ReadFromStream(_netStream);
 
 
                 if (obj is MapColumn[])
@@ -521,8 +519,10 @@ namespace Playerdom.Shared
                         }
                     }
 
+
                     if (colArray[31].ColumnNumber == Map.SIZE_X - 1)
                     {
+                        //lock(_sendCeras)
                         _sendCeras.WriteToStream(_netStream, "MapAffirmation");
                     }
                 }
@@ -608,6 +608,7 @@ namespace Playerdom.Shared
                     }
                 }
             }
+
         }
     }
 }
