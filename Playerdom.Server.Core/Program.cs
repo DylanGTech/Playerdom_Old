@@ -69,6 +69,7 @@ namespace Playerdom.Server
                     {
                         sc.Log("Player left");
                         level.gameObjects.TryRemove(sc.FocusedObjectID, out GameObject player);
+                        sc.Dispose();
                     }
                 }
 

@@ -504,6 +504,8 @@ namespace Playerdom.Shared
             {
                 object obj = await _receiveCeras.ReadFromStream(_netStream);
 
+                Debug.WriteLine("Received {0} packet", obj.GetType());
+
 
                 if (obj is MapColumn[])
                 {
@@ -566,7 +568,7 @@ namespace Playerdom.Shared
                             level.gameObjects.TryRemove(o.Key, out GameObject _object);
                         }
                     }
-                    
+
 
                     foreach (KeyValuePair<Guid, GameObject> o in initialObjects)
                     {
@@ -607,6 +609,7 @@ namespace Playerdom.Shared
                         }
                     }
                 }
+                else throw new Exception("Object " + obj.GetType() + " not supported");
             }
 
         }

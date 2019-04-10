@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Playerdom.Server
 {
-    public class ServerClient
+    public class ServerClient : IDisposable
     {
         readonly TcpClient _tcpClient;
         readonly NetworkStream _netStream;
@@ -216,6 +216,12 @@ namespace Playerdom.Server
             logWriter.Close();
             logFile.Close();
             logWriter.Dispose();
+        }
+
+        public void Dispose()
+        {
+            _tcpClient.Close();
+            _tcpClient.Dispose();
         }
     }
 }
