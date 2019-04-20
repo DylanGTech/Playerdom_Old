@@ -139,7 +139,6 @@ namespace Playerdom.Server
                 }
                 level.entitiesMarkedForDeletion.Clear();
 
-
                 Thread.Sleep(15);
             }
         }
@@ -150,18 +149,128 @@ namespace Playerdom.Server
             PlayerdomCerasSettings.Initialize();
 
 
-
-            level = MapService.CreateMap("World");
+            try
+            {
+                level = LoadMap("World");
+                Console.WriteLine("Loaded Map");
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine("Error Loading Map");
+                level = MapService.CreateMap("World");
+                Console.WriteLine("Creating Map");
+            }
 
 
             new Thread(() => AcceptClients()).Start();
             new Thread(() => UpdateAll()).Start();
 
+            System.Timers.Timer t = new System.Timers.Timer(60000); //Save every minute
+            t.Elapsed += (sender, e) =>
+            {
+                try
+                {
+                    SaveMap(level.Clone(), clients);
+                }
+                catch(Exception exception)
+                {
+                    Console.WriteLine(exception.GetType().ToString());
+                    Console.WriteLine(exception.Message);
+                    Console.WriteLine(exception.StackTrace);
+                }
+            };
 
+            t.Start();
 
             while (!Console.KeyAvailable)
             {
             }
+        }
+        public static void SaveMap(Map mapToSave, ConcurrentDictionary<string, ServerClient> clients)
+        {
+
+
+            //Clear player objects and data from world
+            foreach (KeyValuePair<string, ServerClient> client in clients)
+            {
+                mapToSave.objectsMarkedForDeletion.Add(client.Value.FocusedObjectID);
+            }
+
+            foreach (Guid g in mapToSave.objectsMarkedForDeletion)
+            {
+                mapToSave.gameObjects.TryRemove(g, out GameObject o);
+            }
+            mapToSave.objectsMarkedForDeletion.Clear();
+
+            foreach (Guid g in mapToSave.entitiesMarkedForDeletion)
+            {
+                mapToSave.gameEntities.TryRemove(g, out Entity o);
+            }
+            mapToSave.entitiesMarkedForDeletion.Clear();
+
+
+            CerasSerializer serializer = new CerasSerializer(PlayerdomCerasSettings.config);
+
+            if (!Directory.Exists(mapToSave.levelName))
+            {
+                Directory.CreateDirectory(mapToSave.levelName);
+            }
+            string worldPath = mapToSave.levelName + Path.DirectorySeparatorChar;
+
+
+
+            using (FileStream stream = new FileStream(worldPath + "tiles.bin", FileMode.Create, FileAccess.Write, FileShare.Write))
+            {
+                using (BinaryWriter bw = new BinaryWriter(stream))
+                {
+                    for (int y = 0; y < Map.SIZE_Y; y++)
+                    {
+                        for (int x = 0; x < Map.SIZE_X; x++)
+                        {
+                            bw.Write(mapToSave.tiles[x, y].typeID);
+                            bw.Write(mapToSave.tiles[x, y].variantID);
+                        }
+                    }
+                }
+            }
+
+            File.WriteAllBytes(worldPath + "objects.bin", serializer.Serialize(mapToSave.gameObjects));
+            File.WriteAllBytes(worldPath + "entities.bin", serializer.Serialize(mapToSave.gameEntities));
+        }
+
+        public static Map LoadMap(string name)
+        {
+            CerasSerializer serializer = new CerasSerializer(PlayerdomCerasSettings.config);
+            Map m = new Map();
+            m.levelName = name;
+
+
+            if (!Directory.Exists(m.levelName))
+            {
+                Directory.CreateDirectory(m.levelName);
+            }
+            string worldPath = m.levelName + Path.DirectorySeparatorChar;
+
+
+            using (FileStream stream = new FileStream(worldPath + "tiles.bin", FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                using (BinaryReader br = new BinaryReader(stream))
+                {
+                    for (int y = 0; y < Map.SIZE_Y; y++)
+                    {
+                        for (int x = 0; x < Map.SIZE_X; x++)
+                        {
+                            m.tiles[x, y].typeID = br.ReadUInt16();
+                            m.tiles[x, y].variantID = br.ReadByte();
+                        }
+                    }
+                }
+            }
+
+            m.gameObjects = serializer.Deserialize<ConcurrentDictionary<Guid, GameObject>>(File.ReadAllBytes(worldPath + "objects.bin"));
+            m.gameEntities = serializer.Deserialize<ConcurrentDictionary<Guid, Entity>>(File.ReadAllBytes(worldPath + "entities.bin"));
+
+            return m;
         }
     }
 }

@@ -129,7 +129,7 @@ namespace Playerdom.Shared
             }
 #endif
             _tcpClient = new TcpClient();
-            _tcpClient.Connect(IPAddress.Parse(ip), 25565);
+            _tcpClient.Connect(ip, 25565);
             _netStream = _tcpClient.GetStream();
 
 
@@ -422,7 +422,6 @@ namespace Playerdom.Shared
 
         protected void DrawMap()
         {
-            Thread.Sleep(15);
 
             ushort YTilePosition = (ushort)(focusedObject.Value.Position.Y / Tile.SIZE_Y);
             ushort XTilePosition = (ushort)(focusedObject.Value.Position.X / Tile.SIZE_X);

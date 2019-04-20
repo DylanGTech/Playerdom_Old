@@ -416,7 +416,7 @@ namespace Playerdom.Shared.Objects
                 TakeDamage(5, m, (entity as Bullet).Sender);
                 entity.MarkedForDeletion = true;
             }
-            if(entity.GetType() == typeof(MoneyDrop) && (entity as MoneyDrop).Dropper != this)
+            else if(entity.GetType() == typeof(MoneyDrop) && (entity as MoneyDrop).Dropper != this)
             {
                 Money += (entity as MoneyDrop).MoneyContained;
                 entity.MarkedForDeletion = true;

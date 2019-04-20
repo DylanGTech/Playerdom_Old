@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Playerdom.Shared.Entities;
 using System.Collections.Concurrent;
+using Ceras;
 
 #if WINDOWS_UAP
 using Windows.Storage;
@@ -38,323 +39,39 @@ namespace Playerdom.Shared.Services
         public ConcurrentDictionary<Guid, GameObject> gameObjects = new ConcurrentDictionary<Guid, GameObject>();
         public ConcurrentDictionary<Guid, Entity> gameEntities = new ConcurrentDictionary<Guid, Entity>();
 
-        public int mapOffsetX;
-        public int mapOffsetY;
-
 
         public List<Guid> objectsMarkedForDeletion = new List<Guid>();
         public List<Guid> entitiesMarkedForDeletion = new List<Guid>();
+
+
+
+        public Map Clone()
+        {
+            Map m = new Map();
+
+            m.levelName = levelName;
+            for (int y = 0; y < Map.SIZE_Y; y++)
+            {
+                for (int x = 0; x < Map.SIZE_X; x++)
+                {
+                    m.tiles[x, y].typeID = tiles[x, y].typeID;
+                    m.tiles[x, y].variantID = tiles[x, y].variantID;
+                }
+            }
+
+            m.gameObjects = new ConcurrentDictionary<Guid, GameObject>(gameObjects);
+            m.gameEntities = new ConcurrentDictionary<Guid, Entity>(gameEntities);
+
+            m.objectsMarkedForDeletion = new List<Guid>(objectsMarkedForDeletion);
+            m.entitiesMarkedForDeletion = new List<Guid>(entitiesMarkedForDeletion);
+
+            return m;
+
+        }
     }
 
     public static class MapService
     {
-        /*
-        public static async Task<bool> SaveMapAsync(Map mapToSave)
-        {
-#if WINDOWS_UAP
-            try
-            {
-                StorageFolder folder;
-                folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("SaveData", CreationCollisionOption.OpenIfExists);
-                folder = await folder.CreateFolderAsync(mapToSave.levelName, CreationCollisionOption.OpenIfExists);
-                
-                StorageFile file;
-                file = await folder.CreateFileAsync(mapToSave.levelName + ".bin", CreationCollisionOption.ReplaceExisting);
-
-                using (FileStream fs = new FileStream(file.Path, FileMode.Create))
-                {
-                    using (BinaryWriter bw = new BinaryWriter(fs))
-                    {
-                        for (int y = 0; y < Map.SIZE_Y; y++)
-                        {
-                            for (int x = 0; x < Map.SIZE_X; x++)
-                            {
-                                bw.Write(mapToSave.tiles[x, y].typeID); //Tile Type
-                                bw.Write(mapToSave.tiles[x, y].variantID); //Tile variant
-                            }
-                        }
-                    }
-                }
-
-                Player p = null;
-                List<Enemy> enemies = new List<Enemy>();
-
-                foreach (GameObject o in mapToSave.gameObjects)
-                {
-                    if (o.GetType() == typeof(Player))
-                        p = o as Player;
-                    else if (o.GetType() == typeof(Enemy))
-                        enemies.Add(o as Enemy);
-                }
-
-                file = await folder.CreateFileAsync("player.json", CreationCollisionOption.ReplaceExisting);
-                string objectString = "";
-
-                if (p == null)
-                    p = new Player(new Point(0, 0), new Vector2(Tile.SIZE_X * 1, Tile.SIZE_Y * 1));
-                    objectString = JsonConvert.SerializeObject(p);
-                File.WriteAllText(file.Path, objectString);
-
-
-
-                file = await folder.CreateFileAsync("enemies.json", CreationCollisionOption.ReplaceExisting);
-                objectString = JsonConvert.SerializeObject(enemies);
-                File.WriteAllText(file.Path, objectString);
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
-
-            return true;
-
-#elif WINDOWS
-            try
-            {
-                string path = AppDomain.CurrentDomain.BaseDirectory + "\\SaveData\\" + mapToSave.levelName;
-                Directory.CreateDirectory(path);
-
-
-
-                using (FileStream fs = File.Create(path + "\\" + mapToSave.levelName + ".bin"))
-                {
-                    using (BinaryWriter bw = new BinaryWriter(fs))
-                    {
-                        for (int y = 0; y < Map.SIZE_Y; y++)
-                        {
-                            for (int x = 0; x < Map.SIZE_X; x++)
-                            {
-                                bw.Write(mapToSave.tiles[x, y].typeID); //Tile Type
-                                bw.Write(mapToSave.tiles[x, y].variantID); //Tile variant
-                            }
-                        }
-                    }
-                }
-
-                Player p = null;
-                List<Enemy> enemies = new List<Enemy>();
-
-                foreach (GameObject o in mapToSave.gameObjects)
-                {
-                    if (o.GetType() == typeof(Player))
-                        p = o as Player;
-                    else if (o.GetType() == typeof(Enemy))
-                        enemies.Add(o as Enemy);
-                }
-
-                File.Create(path + "\\" + "player.json").Dispose();
-
-
-                string objectString = "";
-
-                if (p == null)
-                    p = new Player(new Point(0, 0), new Vector2(Tile.SIZE_X * 1, Tile.SIZE_Y * 1));
-                objectString = JsonConvert.SerializeObject(p);
-                File.WriteAllText(path + "\\" + "player.json", objectString);
-
-
-
-                File.Create(path + "\\" + "enemies.json").Dispose();
-                objectString = JsonConvert.SerializeObject(enemies);
-                File.WriteAllText(path + "\\" + "enemies.json", objectString);
-            }
-            catch(Exception e)
-            {
-                return false;
-            }
-
-            return true;
-            
-#else
-            throw new NotImplementedException();
-#endif
-        }
-
-        public static async Task<Map> LoadMapAsync(string levelName)
-        {
-#if WINDOWS_UAP
-            StorageFolder folder;
-            folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("SaveData", CreationCollisionOption.OpenIfExists);
-            folder = await folder.GetFolderAsync(levelName);
-            StorageFile file;
-            try
-            {
-                file = await folder.CreateFileAsync(levelName + ".bin", CreationCollisionOption.OpenIfExists);
-
-                Map mapToLoad = new Map
-                {
-                    levelName = levelName,
-                    tiles = new Tile[Map.SIZE_X, Map.SIZE_Y]
-                };
-
-                try
-                {
-                    using (FileStream fs = new FileStream(file.Path, FileMode.OpenOrCreate))
-                    {
-                        using (BinaryReader br = new BinaryReader(fs))
-                        {
-                            for (int y = 0; y < Map.SIZE_Y; y++)
-                            {
-                                for (int x = 0; x < Map.SIZE_X; x++)
-                                {
-                                    mapToLoad.tiles[x, y].typeID = br.ReadUInt16(); //Tile Type
-                                    mapToLoad.tiles[x, y].variantID = br.ReadByte(); //Tile Type
-                                }
-                            }
-                        }
-                    }
-                }
-                catch(Exception e)
-                {
-                    await file.DeleteAsync();
-                    return null;
-                }
-                
-
-                if (mapToLoad.gameObjects == null) mapToLoad.gameObjects = new List<GameObject>();
-
-                file = await folder.CreateFileAsync("player.json", CreationCollisionOption.OpenIfExists);
-
-                string objectString;
-                try
-                {
-                    objectString = File.ReadAllText(file.Path);
-                    Player p = JsonConvert.DeserializeObject<Player>(objectString, new JsonSerializerSettings { ObjectCreationHandling = ObjectCreationHandling.Replace });
-                    mapToLoad.gameObjects.Add(p);
-                }
-                catch(Exception e)
-                {
-                    await file.DeleteAsync();
-
-
-                    file = await folder.CreateFileAsync("error.txt");
-                    File.WriteAllText(file.Path, e.ToString());
-
-
-                    return null;
-                }
-
-
-
-                file = await folder.CreateFileAsync("enemies.json", CreationCollisionOption.OpenIfExists);
-
-                try
-                {
-                    objectString = File.ReadAllText(file.Path);
-
-                    List<Enemy> list = JsonConvert.DeserializeObject<List<Enemy>>(objectString, new JsonSerializerSettings { ObjectCreationHandling = ObjectCreationHandling.Replace });
-                    foreach(Enemy e in list)
-                        mapToLoad.gameObjects.Add(e);
-                }
-                catch (Exception e)
-                {
-                    await file.DeleteAsync();
-                    return null;
-                }
-
-                return mapToLoad;
-            }
-            catch (Exception e)
-            {
-                file = await folder.CreateFileAsync("error.txt", CreationCollisionOption.ReplaceExisting);
-                File.WriteAllText(file.Path, e.ToString());
-                return null;
-            }
-#elif WINDOWS
-
-            string path = AppDomain.CurrentDomain.BaseDirectory + "\\SaveData\\" + levelName;
-
-            try
-            {
-
-                Map mapToLoad = new Map
-                {
-                    levelName = levelName,
-                    tiles = new Tile[Map.SIZE_X, Map.SIZE_Y]
-                };
-
-                try
-                {
-                    using (FileStream fs = new FileStream(path + "\\" + levelName + ".bin", FileMode.Open))
-                    {
-                        using (BinaryReader br = new BinaryReader(fs))
-                        {
-                            for (int y = 0; y < Map.SIZE_Y; y++)
-                            {
-                                for (int x = 0; x < Map.SIZE_X; x++)
-                                {
-                                    mapToLoad.tiles[x, y].typeID = br.ReadUInt16(); //Tile Type
-                                    mapToLoad.tiles[x, y].variantID = br.ReadByte(); //Tile Type
-                                }
-                            }
-                        }
-                    }
-                }
-                catch(Exception e)
-                {
-                    if(File.Exists(path + "\\" + levelName + ".bin"))
-                        File.Delete(path + "\\" + levelName + ".bin");
-                    return null;
-                }
-
-                if (mapToLoad.gameObjects == null) mapToLoad.gameObjects = new List<GameObject>();
-
-                string objectString;
-                
-
-                try
-                {
-                    objectString = File.ReadAllText(path + "\\player.json");
-
-                    Player p = JsonConvert.DeserializeObject<Player>(objectString, new JsonSerializerSettings { ObjectCreationHandling = ObjectCreationHandling.Replace });
-                    mapToLoad.gameObjects.Add(p);
-                }
-                catch (Exception e)
-                {
-                    if (File.Exists(path + "\\player.json"))
-                        File.Delete(path + "\\player.json");
-
-                    File.Create(path + "\\error.txt").Dispose();
-                    File.WriteAllText(path + "\\error.txt", e.ToString());
-
-
-                    return null;
-                }
-
-
-
-
-                try
-                {
-                    objectString = File.ReadAllText(path + "\\enemies.json");
-
-                    List<Enemy> list = JsonConvert.DeserializeObject<List<Enemy>>(objectString, new JsonSerializerSettings { ObjectCreationHandling = ObjectCreationHandling.Replace });
-                    foreach (Enemy e in list)
-                        mapToLoad.gameObjects.Add(e);
-                }
-                catch (Exception e)
-                {
-                    if (File.Exists(path + "\\enemies.json"))
-                        File.Delete(path + "\\enemies.json");
-                    return null;
-                }
-
-                return mapToLoad;
-            }
-            catch (Exception e)
-            {
-                File.Create(path + "\\error.txt");
-                File.WriteAllText(path + "\\error.txt", e.ToString());
-                return null;
-            }
-#else
-            throw new NotImplementedException();
-#endif
-        }
-
-    */
-
-
         public static Map CreateMap(string mapName)
         {
             Map m = new Map();
