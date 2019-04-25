@@ -208,7 +208,13 @@ namespace Playerdom.Server
                             pairValue = pair.Value;
                             if (pairValue.Length > 256)
                                 pairValue = pairValue.Substring(0, 256);
-                            Program.chatLog.Enqueue(new ChatMessage { message = string.Format("[{0}]: {1}", GetUsername(), pairValue), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.White });
+
+
+
+                            if (pairValue[0] == '/')
+                                ProcessCommand(pairValue);
+                            else
+                                Program.chatLog.Enqueue(new ChatMessage { message = string.Format("[{0}]: {1}", GetUsername(), pairValue), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.White });
                         }
                         break;
                 }
@@ -247,6 +253,10 @@ namespace Playerdom.Server
             logWriter.Dispose();
         }
 
+
+
+        private string nickName = null;
+
         public string GetUsername()
         {
             //TODO: Create Sysstem to retrieve a username or profile
@@ -254,13 +264,49 @@ namespace Playerdom.Server
             if (UserID == null)
                 throw new NullReferenceException("User doesn't have an ID");
 
-            return "Player " + UserID.Value;
+
+            if (nickName == null)
+                return "Player " + UserID.Value;
+            else return nickName;
         }
 
         public void Dispose()
         {
             _tcpClient.Close();
             _tcpClient.Dispose();
+        }
+
+
+
+        private void ProcessCommand(string command)
+        {
+            command = command.Substring(1);
+
+            string[] args = command.Split(' ');
+
+
+            if (args[0] == "nick" && args.Length == 2 && args[1].Length <= 48)
+            {
+
+                if(Program.clients.Count(c => c.Value.nickName == args[1]) == 0)
+                {
+                    string oldName = GetUsername();
+
+
+                    nickName = args[1];
+
+                    try
+                    {
+                        Program.level.gameObjects[this.FocusedObjectID].SetDisplayName(args[1]);
+
+                        Program.chatLog.Enqueue(new ChatMessage { message = string.Format("[Server]: {0} is now known as {1}", oldName, nickName), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.Yellow });
+                    }
+                    catch(Exception e)
+                    {
+
+                    }
+                }
+            }
         }
     }
 }

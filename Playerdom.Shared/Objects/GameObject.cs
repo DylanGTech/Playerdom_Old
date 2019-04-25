@@ -477,6 +477,12 @@ namespace Playerdom.Shared.Objects
 
         }
 
+        public virtual void SetDisplayName(string newName)
+        {
+            DisplayName = newName;
+        }
+
+
     }
 
     public enum ObjectType : byte
