@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Playerdom.Shared.Services;
 using System.Collections.Concurrent;
+using Playerdom.Shared.Models;
 
 namespace Playerdom.Shared
 {
@@ -31,14 +32,19 @@ namespace Playerdom.Shared
             config.KnownTypes.Add(typeof(Bullet));
             config.KnownTypes.Add(typeof(MoneyDrop));
 
+            config.KnownTypes.Add(typeof(ChatMessage));
+            config.KnownTypes.Add(typeof(List<ChatMessage>));
+
+
             config.KnownTypes.Add(typeof(Vector2));
             config.KnownTypes.Add(typeof(Point));
             config.KnownTypes.Add(typeof(Rectangle));
             config.KnownTypes.Add(typeof(Guid));
+            config.KnownTypes.Add(typeof(Color));
             config.KnownTypes.Add(typeof(Keys));
             config.KnownTypes.Add(typeof(Keys[]));
 
-
+            config.KnownTypes.Add(typeof(KeyValuePair<string, string>));
 
             config.KnownTypes.Add(typeof(bool));
             config.KnownTypes.Add(typeof(uint));

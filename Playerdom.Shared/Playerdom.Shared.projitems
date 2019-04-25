@@ -13,6 +13,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Entities\MoneyDrop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GameLevel.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\Bullet.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\ChatMessage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\Map.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Objects\Enemy.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Objects\GameObject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Objects\Player.cs" />

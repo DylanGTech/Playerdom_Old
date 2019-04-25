@@ -19,6 +19,7 @@ using System.Text;
 using System.Net.Sockets;
 using Ceras.Helpers;
 using System.Collections.Concurrent;
+using Playerdom.Shared.Models;
 
 #if WINDOWS_UAP
 using Windows.Storage;
@@ -58,8 +59,11 @@ namespace Playerdom.Shared
         Texture2D xpBar;
         Texture2D hpBar;
 
+        bool isTyping = false;
+        string typedMessage = "";
 
 
+        public static List<ChatMessage> chatLog = new List<ChatMessage>();
         public static Map level;
         static Assembly asm = Assembly.GetEntryAssembly();
         SpriteFont font;
@@ -161,19 +165,199 @@ namespace Playerdom.Shared
                 }
                 connectionWatch.Stop();
 
-            Timer t = new Timer(15);
+
 
             CerasSerializer _keyboardSerializer = null;
-            t.Elapsed += (object sender, ElapsedEventArgs e) =>
+            Task.Run(() => 
             {
                 if (_keyboardSerializer == null)
                     _keyboardSerializer = new CerasSerializer(PlayerdomCerasSettings.config);
+                this.Window.TextInput += (sender, e) =>
+                {
+                    if(isTyping)
+                    {
+                        KeyboardState ks = Keyboard.GetState();
+                            if (ks.IsKeyDown(Keys.Escape))
+                            {
+                                typedMessage = "";
+                                isTyping = false;
+                                return;
+                            }
+                            else if (ks.IsKeyDown(Keys.Enter))
+                            {
+                                isTyping = false;
+                                _keyboardSerializer.WriteToStream(_netStream, new KeyValuePair<string, string>("ChatMessage", typedMessage));
+                                typedMessage = "";
+                                return;
+                            }
+                            else if (ks.IsKeyDown(Keys.Back) && typedMessage.Length > 0)
+                            {
+                                typedMessage = typedMessage.Substring(0, typedMessage.Length - 1);
+                                return;
+                            }
 
-                //lock(_keyboardSerializer)
-                    _keyboardSerializer.WriteToStream(_netStream, Keyboard.GetState());
-            };
 
-            t.Start();
+                            if (isTyping)
+                            {
+                                    if (font2.Characters.Contains(e.Character))
+                                    {
+                                        char key = e.Character;
+
+                                        if (ks.IsKeyUp(Keys.LeftShift) && ks.IsKeyUp(Keys.RightShift))
+                                        {
+                                            if (char.IsLetter(key))
+                                                key = char.ToLower(key);
+                                            else
+                                            {
+                                                //switch (e.Character)
+                                                //{
+                                                //    case Keys.OemBackslash:
+                                                //        key = '\\';
+                                                //        break;
+
+                                                //    case Keys.OemCloseBrackets:
+                                                //        key = ']';
+                                                //        break;
+
+                                                //    case Keys.OemComma:
+                                                //        key = ',';
+                                                //        break;
+
+                                                //    case Keys.OemMinus:
+                                                //        key = '-';
+                                                //        break;
+
+                                                //    case Keys.OemPeriod:
+                                                //        key = '.';
+                                                //        break;
+
+                                                //    case Keys.OemPipe:
+                                                //        key = '|';
+                                                //        break;
+
+                                                //    case Keys.OemPlus:
+                                                //        key = '+';
+                                                //        break;
+
+                                                //    case Keys.OemQuestion:
+                                                //        key = '?';
+                                                //        break;
+
+                                                //    case Keys.OemQuotes:
+                                                //        key = '\"';
+                                                //        break;
+
+                                                //    case Keys.OemSemicolon:
+                                                //        key = ';';
+                                                //        break;
+
+                                                //    case Keys.OemTilde:
+                                                //        key = '~';
+                                                //        break;
+                                                //}
+                                            }
+                                        }
+                                        else if (char.IsDigit(key))
+                                            switch (key)
+                                            {
+                                                default:
+                                                    break;
+                                                case '0':
+                                                    key = ')';
+                                                    break;
+
+                                                case '1':
+                                                    key = '!';
+                                                    break;
+
+                                                case '2':
+                                                    key = '@';
+                                                    break;
+
+                                                case '3':
+                                                    key = '#';
+                                                    break;
+
+                                                case '4':
+                                                    key = '$';
+                                                    break;
+
+                                                case '5':
+                                                    key = '%';
+                                                    break;
+
+                                                case '6':
+                                                    key = '^';
+                                                    break;
+
+                                                case '7':
+                                                    key = '&';
+                                                    break;
+
+                                                case '8':
+                                                    key = '*';
+                                                    break;
+
+                                                case '9':
+                                                    key = '(';
+                                                    break;
+                                            }
+                                        else
+                                        {
+                                            switch (e.Character)
+                                            {
+                                                case '\\':
+                                                    key = '|';
+                                                    break;
+
+                                                case ']':
+                                                    key = '}';
+                                                    break;
+
+                                                case ',':
+                                                    key = '<';
+                                                    break;
+
+                                                case '-':
+                                                    key = '_';
+                                                    break;
+
+                                                case '.':
+                                                    key = '>';
+                                                    break;
+
+                                                case ';':
+                                                    key = ':';
+                                                    break;
+                                            }
+                                        }
+
+
+                                        typedMessage += key;
+                                    }
+                            }
+                    }
+                };
+
+                while(true)
+                {
+                    KeyboardState ks = Keyboard.GetState();
+
+
+                    if (!isTyping)
+                    {
+                        _keyboardSerializer.WriteToStream(_netStream, ks);
+
+                        if (ks.IsKeyDown(Keys.OemSemicolon))
+                        {
+                            isTyping = true;
+                        }
+                    }
+
+                    Thread.Sleep(15);
+                }
+                
+            });
 
             base.Initialize();
         }
@@ -361,6 +545,8 @@ namespace Playerdom.Shared
 
             DrawStats();
 
+            DrawChat();
+
             base.Draw(gameTime);
 
             spriteBatch.End();
@@ -395,10 +581,42 @@ namespace Playerdom.Shared
         }
 
 
-        //protected Map LoadMap(string mapName)
-        //{
-        //    return Task.Run(async () =>  await MapService.LoadMapAsync(mapName)).Result;
-        //}
+        protected void DrawChat()
+        {
+            for(int i = 0; i < chatLog.Count; i++)
+            {
+                try
+                {
+                    Rectangle r = new Rectangle(32, 32 + i * (int)font2.MeasureString(chatLog[i].message).Y, (int)font2.MeasureString(chatLog[i].message).X, (int)font2.MeasureString(chatLog[i].message).Y);
+                    spriteBatch.Draw(uiBackground, r, Color.Black);
+                    spriteBatch.DrawString(font2, chatLog[i].message, new Vector2(r.X, r.Y), chatLog[i].textColor);
+
+                }
+                catch(Exception e)
+                {
+                    Rectangle r = new Rectangle(32, 32 + i * (int)font2.MeasureString("[Error Displaying Text]").Y, (int)font2.MeasureString("[Error Displaying Text]").X, (int)font2.MeasureString("[Error Displaying Text]").Y);
+                    spriteBatch.Draw(uiBackground, r, Color.Black);
+                    spriteBatch.DrawString(font2, "[Error Displaying Text]", new Vector2(r.X, r.Y), chatLog[i].textColor);
+                }
+            }
+
+            try
+            {
+                Rectangle rect = new Rectangle(32, 48 + chatLog.Count * (int)font2.MeasureString(">: " + typedMessage).Y, (int)font2.MeasureString(">: " + typedMessage).X, (int)font2.MeasureString(">: " + typedMessage).Y);
+                spriteBatch.Draw(uiBackground, rect, Color.Black);
+                spriteBatch.DrawString(font2, ">: " + typedMessage, new Vector2(rect.X, rect.Y), Color.LightGray);
+            }
+            catch(Exception e)
+            {
+                Rectangle rect = new Rectangle(32, 48 + chatLog.Count * (int)font2.MeasureString(">: [Error Displaying Text]").Y, (int)font2.MeasureString(">: [Error Displaying Text]").X, (int)font2.MeasureString(">: [Error Displaying Text]").Y);
+                spriteBatch.Draw(uiBackground, rect, Color.Black);
+                spriteBatch.DrawString(font2, ">: [Error Displaying Text]", new Vector2(rect.X, rect.Y), Color.LightGray);
+            }
+        }
+
+
+
+
 
         protected void DrawStats()
         {
@@ -607,6 +825,10 @@ namespace Playerdom.Shared
                             level.gameEntities.TryAdd(e.Key, e.Value);
                         }
                     }
+                }
+                else if(obj is List<ChatMessage> messages)
+                {
+                    chatLog = messages;
                 }
                 else throw new Exception("Object " + obj.GetType() + " not supported");
             }

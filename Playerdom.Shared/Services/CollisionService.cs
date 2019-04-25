@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Playerdom.Shared.Models;
 
 namespace Playerdom.Shared.Services
 {

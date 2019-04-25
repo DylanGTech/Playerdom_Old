@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Playerdom.Shared.Models;
 using Playerdom.Shared.Objects;
 using Playerdom.Shared.Services;
 using System;

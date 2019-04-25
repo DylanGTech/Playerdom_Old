@@ -3,6 +3,7 @@ using Ceras.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Playerdom.Shared;
+using Playerdom.Shared.Models;
 using Playerdom.Shared.Objects;
 using Playerdom.Shared.Services;
 using System;
@@ -18,12 +19,15 @@ namespace Playerdom.Server
 {
     public class ServerClient : IDisposable
     {
+
+        private static ulong userIDCounter = 0; //TODO: Remove and replace with a system for users to identify themselves or log in 
+
         readonly TcpClient _tcpClient;
         readonly NetworkStream _netStream;
         readonly CerasSerializer _sendCeras;
         readonly CerasSerializer _receiveCeras;
 
-
+        public ulong? UserID { get; set; } = null;
 
         public string EndPointString
         {
@@ -45,11 +49,14 @@ namespace Playerdom.Server
             _tcpClient = tcpClient;
             _netStream = tcpClient.GetStream();
 
+            UserID = userIDCounter;
+            userIDCounter++;
 
             _sendCeras = new CerasSerializer(PlayerdomCerasSettings.config);
             _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.config);
 
             Log("Player Joined");
+            Program.chatLog.Enqueue(new ChatMessage() { senderID = 0, message = "[SERVER]: Player Joined", timeSent = DateTime.Now, textColor = Color.Orange });
 
             FocusedObjectID = Guid.NewGuid();
             InputState = new KeyboardState();
@@ -150,6 +157,9 @@ namespace Playerdom.Server
 
                                 //All Entities
                                 Send(Program.level.gameEntities);
+
+                                //All chat messages
+                                Send(Program.chatLog.ToList());
                             }
 
                         }
@@ -184,7 +194,26 @@ namespace Playerdom.Server
                     HasMap = true;
                 }
             }
-            else new Exception("Unknown object type");
+            else if(obj is KeyValuePair<string, string> pair)
+            {
+                string pairValue;
+                switch (pair.Key)
+                {
+                    default:
+                        throw new Exception("Unknown object type");
+                    case "ChatMessage":
+                        if (UserID != null)
+                        {
+
+                            pairValue = pair.Value;
+                            if (pairValue.Length > 256)
+                                pairValue = pairValue.Substring(0, 256);
+                            Program.chatLog.Enqueue(new ChatMessage { message = string.Format("[{0}]: {1}", GetUsername(), pairValue), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.White });
+                        }
+                        break;
+                }
+            }
+            else throw new Exception("Unknown object type");
 
             LastUpdate = DateTime.Now;
         }
@@ -216,6 +245,16 @@ namespace Playerdom.Server
             logWriter.Close();
             logFile.Close();
             logWriter.Dispose();
+        }
+
+        public string GetUsername()
+        {
+            //TODO: Create Sysstem to retrieve a username or profile
+
+            if (UserID == null)
+                throw new NullReferenceException("User doesn't have an ID");
+
+            return "Player " + UserID.Value;
         }
 
         public void Dispose()

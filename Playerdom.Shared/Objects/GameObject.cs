@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ceras;
 using System.Reflection;
+using Playerdom.Shared.Models;
 
 namespace Playerdom.Shared.Objects
 {

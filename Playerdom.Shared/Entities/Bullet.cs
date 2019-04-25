@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Runtime.Serialization;
+using Playerdom.Shared.Models;
 
 namespace Playerdom.Shared.Entities
 {

@@ -18,15 +18,19 @@ using Ceras;
 using System.Text;
 using System.Collections.Concurrent;
 using System.IO;
+using Playerdom.Shared.Models;
 
 namespace Playerdom.Server
 {
     public class Program
     {
 
+        public static ConcurrentQueue<ChatMessage> chatLog = new ConcurrentQueue<ChatMessage>();
+
         public static ConcurrentQueue<string> leavingPlayers = new ConcurrentQueue<string>();
         public static Map level = new Map();
         public static ConcurrentDictionary<string, ServerClient> clients = new ConcurrentDictionary<string, ServerClient>();
+
 
         static void AcceptClients()
         {
@@ -71,6 +75,7 @@ namespace Playerdom.Server
                     {
                         sc.Log("Player left");
                         level.gameObjects.TryRemove(sc.FocusedObjectID, out GameObject player);
+                        Program.chatLog.Enqueue(new ChatMessage() { senderID = 0, message = "[SERVER]: Player Left", timeSent = DateTime.Now, textColor = Color.Orange });
                         sc.Dispose();
                     }
                 }
@@ -139,7 +144,12 @@ namespace Playerdom.Server
                 }
                 level.entitiesMarkedForDeletion.Clear();
 
-                Thread.Sleep(15);
+                while(chatLog.Count > 12)
+                {
+                    chatLog.TryDequeue(out ChatMessage message);
+                }
+
+                Thread.Sleep(10);
             }
         }
 
