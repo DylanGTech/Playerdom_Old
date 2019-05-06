@@ -31,7 +31,6 @@ namespace Playerdom.Server
         public static Map level = new Map();
         public static ConcurrentDictionary<string, ServerClient> clients = new ConcurrentDictionary<string, ServerClient>();
 
-
         static void AcceptClients()
         {
             TcpListener listener = new TcpListener(IPAddress.Any, 25565);
@@ -50,32 +49,32 @@ namespace Playerdom.Server
 
         static void UpdateAll()
         {
-            while(true)
+            while (true)
             {
-                foreach(KeyValuePair<string, ServerClient> sc in clients)
+                foreach (KeyValuePair<string, ServerClient> sc in clients)
                 {
-                    if(!sc.Value.IsInitialized)
+                    if (!sc.Value.IsInitialized)
                     {
                         sc.Value.InitializePlayer();
                     }
-                    
-                    if(sc.Value.LastUpdate.AddSeconds(45) <= DateTime.Now)
+
+                    if (sc.Value.LastUpdate.AddSeconds(45) <= DateTime.Now)
                     {
-                        if(!leavingPlayers.Contains(sc.Value.EndPointString))
+                        if (!leavingPlayers.Contains(sc.Value.EndPointString))
                             leavingPlayers.Enqueue(sc.Value.EndPointString);
                     }
-                    
+
                 }
 
-                while(leavingPlayers.TryDequeue(out string endpoint))
+                while (leavingPlayers.TryDequeue(out string endpoint))
                 {
                     clients.TryRemove(endpoint, out ServerClient sc);
 
-                    if(sc != null)
+                    if (sc != null)
                     {
                         sc.Log("Player left");
                         level.gameObjects.TryRemove(sc.FocusedObjectID, out GameObject player);
-                        Program.chatLog.Enqueue(new ChatMessage() { senderID = 0, message = "[SERVER]: Player Left", timeSent = DateTime.Now, textColor = Color.Orange });
+                        Program.chatLog.Enqueue(new ChatMessage() { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Left ", textColor = Color.Orange });
                         sc.Dispose();
                     }
                 }
@@ -144,7 +143,11 @@ namespace Playerdom.Server
                 }
                 level.entitiesMarkedForDeletion.Clear();
 
-                while(chatLog.Count > 12)
+                //TODO: Auto clear text based on amount of messages and time
+                //System.Timers.Timer chatTimer = new System.Timers.Timer(6000);
+
+
+                while (chatLog.Count > 12) //&& chatTimer == 6000)
                 {
                     chatLog.TryDequeue(out ChatMessage message);
                 }
@@ -155,20 +158,20 @@ namespace Playerdom.Server
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Playerdom Test Server");
+            Console.WriteLine("Playerdom Test Server started at {0:HH:mm:ss}", DateTime.Now);
             PlayerdomCerasSettings.Initialize();
 
 
             try
             {
                 level = LoadMap("World");
-                Console.WriteLine("Loaded Map");
+                Console.WriteLine("{0:HH:mm}", DateTime.Now.ToString("HH:mm") + " Loaded Map");
             }
-            catch(Exception e)
+            catch(Exception)
             {
-                Console.WriteLine("Error Loading Map");
+                Console.WriteLine("{0:HH:mm}", DateTime.Now.ToString("HH:mm") + " [ERROR] Loading Map");
                 level = MapService.CreateMap("World");
-                Console.WriteLine("Creating Map");
+                Console.WriteLine("{0:HH:mm}", DateTime.Now.ToString("HH:mm") + " Creating Map");
             }
 
 

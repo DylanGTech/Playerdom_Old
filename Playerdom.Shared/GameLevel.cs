@@ -587,14 +587,14 @@ namespace Playerdom.Shared
             {
                 try
                 {
-                    Rectangle r = new Rectangle(32, 32 + i * (int)font2.MeasureString(chatLog[i].message).Y, (int)font2.MeasureString(chatLog[i].message).X, (int)font2.MeasureString(chatLog[i].message).Y);
+                    Rectangle r = new Rectangle(72, 72 + i * (int)font2.MeasureString(chatLog[i].message).Y, (int)font2.MeasureString(chatLog[i].message).X, (int)font2.MeasureString(chatLog[i].message).Y);
                     spriteBatch.Draw(uiBackground, r, Color.Black);
                     spriteBatch.DrawString(font2, chatLog[i].message, new Vector2(r.X, r.Y), chatLog[i].textColor);
 
                 }
                 catch(Exception e)
                 {
-                    Rectangle r = new Rectangle(32, 32 + i * (int)font2.MeasureString("[Error Displaying Text]").Y, (int)font2.MeasureString("[Error Displaying Text]").X, (int)font2.MeasureString("[Error Displaying Text]").Y);
+                    Rectangle r = new Rectangle(72, 72 + i * (int)font2.MeasureString("[Error Displaying Text]").Y, (int)font2.MeasureString("[Error Displaying Text]").X, (int)font2.MeasureString("[Error Displaying Text]").Y);
                     spriteBatch.Draw(uiBackground, r, Color.Black);
                     spriteBatch.DrawString(font2, "[Error Displaying Text]", new Vector2(r.X, r.Y), chatLog[i].textColor);
                 }
@@ -602,13 +602,13 @@ namespace Playerdom.Shared
 
             try
             {
-                Rectangle rect = new Rectangle(32, 48 + chatLog.Count * (int)font2.MeasureString(">: " + typedMessage).Y, (int)font2.MeasureString(">: " + typedMessage).X, (int)font2.MeasureString(">: " + typedMessage).Y);
+                Rectangle rect = new Rectangle(72, 80 + chatLog.Count * (int)font2.MeasureString(">: " + typedMessage).Y, (int)font2.MeasureString(">: " + typedMessage).X, (int)font2.MeasureString(">: " + typedMessage).Y);
                 spriteBatch.Draw(uiBackground, rect, Color.Black);
                 spriteBatch.DrawString(font2, ">: " + typedMessage, new Vector2(rect.X, rect.Y), Color.LightGray);
             }
             catch(Exception e)
             {
-                Rectangle rect = new Rectangle(32, 48 + chatLog.Count * (int)font2.MeasureString(">: [Error Displaying Text]").Y, (int)font2.MeasureString(">: [Error Displaying Text]").X, (int)font2.MeasureString(">: [Error Displaying Text]").Y);
+                Rectangle rect = new Rectangle(72, 80 + chatLog.Count * (int)font2.MeasureString(">: [Error Displaying Text]").Y, (int)font2.MeasureString(">: [Error Displaying Text]").X, (int)font2.MeasureString(">: [Error Displaying Text]").Y);
                 spriteBatch.Draw(uiBackground, rect, Color.Black);
                 spriteBatch.DrawString(font2, ">: [Error Displaying Text]", new Vector2(rect.X, rect.Y), Color.LightGray);
             }
