@@ -13,7 +13,7 @@ namespace PngToPldms
         static void Main(string[] args)
         {
             string path;
-            Color[,] pixels;
+            Color[,] pixels = null;
             Bitmap bmp = null;
             if (args.Length != 1)
             {

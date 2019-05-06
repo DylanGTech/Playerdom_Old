@@ -224,7 +224,7 @@ namespace Playerdom.Server
             LastUpdate = DateTime.Now;
         }
 
-        public void Log(string text) => Console.WriteLine("[Server] " + text);
+        public void Log(string text) => Console.WriteLine("{0:HH:mm}", DateTime.Now + " [Server] " + text);
 
         public void Send(object obj)
         {
