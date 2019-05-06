@@ -55,8 +55,10 @@ namespace Playerdom.Server
             _sendCeras = new CerasSerializer(PlayerdomCerasSettings.config);
             _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.config);
 
+
             Log("Player Joined");
-            Program.chatLog.Enqueue(new ChatMessage() { senderID = 0, message = "[SERVER]: Player Joined", timeSent = DateTime.Now, textColor = Color.Orange });
+            //TODO: Parse dates into shorter HH:mm formats.
+            Program.chatLog.Enqueue(new ChatMessage() { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Joined ", timeSent = DateTime.Now, textColor = Color.Orange });
 
             FocusedObjectID = Guid.NewGuid();
             InputState = new KeyboardState();
@@ -214,7 +216,7 @@ namespace Playerdom.Server
                             if (pairValue[0] == '/')
                                 ProcessCommand(pairValue);
                             else
-                                Program.chatLog.Enqueue(new ChatMessage { message = string.Format("[{0}]: {1}", GetUsername(), pairValue), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.White });
+                                Program.chatLog.Enqueue(new ChatMessage { message = string.Format("{0} [{1}]: {2}", DateTime.Now.ToString("HH:mm"), GetUsername(), pairValue), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.White });
                         }
                         break;
                 }
@@ -224,7 +226,7 @@ namespace Playerdom.Server
             LastUpdate = DateTime.Now;
         }
 
-        public void Log(string text) => Console.WriteLine("{0:HH:mm}", DateTime.Now + " [Server] " + text);
+        public void Log(string text) => Console.WriteLine("{0:HH:mm}", DateTime.Now.ToString("HH:mm") + " [Server] " + text);
 
         public void Send(object obj)
         {
@@ -299,12 +301,9 @@ namespace Playerdom.Server
                     {
                         Program.level.gameObjects[this.FocusedObjectID].SetDisplayName(args[1]);
 
-                        Program.chatLog.Enqueue(new ChatMessage { message = string.Format("[Server]: {0} is now known as {1}", oldName, nickName), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.Yellow });
+                        Program.chatLog.Enqueue(new ChatMessage { message = string.Format("{0} [Server]: {1} is now known as {2}", DateTime.Now.ToString("HH:mm"), oldName, nickName), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.Yellow });
                     }
-                    catch(Exception e)
-                    {
-
-                    }
+                    finally { }
                 }
             }
         }

@@ -31,19 +31,6 @@ namespace Playerdom.Server
         public static Map level = new Map();
         public static ConcurrentDictionary<string, ServerClient> clients = new ConcurrentDictionary<string, ServerClient>();
 
-        private static System.Timers.Timer aTimer;
-        /*private static ElapsedEventHandler OnTimedEvent;
-
-        private static void SetTimer()
-        {
-            // Create a timer with a two second interval.
-            aTimer = new System.Timers.Timer(1000);
-            // Hook up the Elapsed event for the timer. 
-           aTimer.Elapsed += OnTimedEvent;
-            aTimer.AutoReset = true;
-            aTimer.Enabled = true;
-        }*/
-
         static void AcceptClients()
         {
             TcpListener listener = new TcpListener(IPAddress.Any, 25565);
@@ -87,7 +74,7 @@ namespace Playerdom.Server
                     {
                         sc.Log("Player left");
                         level.gameObjects.TryRemove(sc.FocusedObjectID, out GameObject player);
-                        Program.chatLog.Enqueue(new ChatMessage() { senderID = 0, message = "[SERVER]: Player Left", timeSent = DateTime.Now, textColor = Color.Orange });
+                        Program.chatLog.Enqueue(new ChatMessage() { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Left ", textColor = Color.Orange });
                         sc.Dispose();
                     }
                 }
@@ -171,20 +158,20 @@ namespace Playerdom.Server
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Playerdom Test Server started at {0:HH:mm}", DateTime.Now);
+            Console.WriteLine("Playerdom Test Server started at {0:HH:mm:ss}", DateTime.Now);
             PlayerdomCerasSettings.Initialize();
 
 
             try
             {
                 level = LoadMap("World");
-                Console.WriteLine("{0:HH:mm}", DateTime.Now + " Loaded Map");
+                Console.WriteLine("{0:HH:mm}", DateTime.Now.ToString("HH:mm") + " Loaded Map");
             }
-            catch(Exception e)
+            catch(Exception)
             {
-                Console.WriteLine("{0:HH:mm}", DateTime.Now + " [ERROR] Loading Map");
+                Console.WriteLine("{0:HH:mm}", DateTime.Now.ToString("HH:mm") + " [ERROR] Loading Map");
                 level = MapService.CreateMap("World");
-                Console.WriteLine("{0:HH:mm}", DateTime.Now + " Creating Map");
+                Console.WriteLine("{0:HH:mm}", DateTime.Now.ToString("HH:mm") + " Creating Map");
             }
 
 
