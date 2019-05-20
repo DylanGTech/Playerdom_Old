@@ -69,8 +69,12 @@ namespace Playerdom.Shared
         SpriteFont font;
         SpriteFont font2;
 
+
         static TcpClient _tcpClient;
         static NetworkStream _netStream;
+
+
+        static Guid securityToken;
 
         static KeyValuePair<Guid, GameObject> focusedObject = new KeyValuePair<Guid, GameObject>(Guid.Empty, null);
 
@@ -103,6 +107,7 @@ namespace Playerdom.Shared
         {
             PlayerdomCerasSettings.Initialize();
             string ip = "localhost";
+
 #if WINDOWS_UAP
             try
             {
@@ -121,16 +126,48 @@ namespace Playerdom.Shared
             }
 
 
+            try
+            {
+                StorageFile file;
+                file = Task.Run(async () => await ApplicationData.Current.LocalFolder.GetFileAsync("token.txt")).Result;
+
+                securityToken = new Guid(File.ReadAllText(file.Path));
+            }
+            catch(Exception e)
+            {
+                StorageFile file;
+                file = Task.Run(async () => await ApplicationData.Current.LocalFolder.CreateFileAsync("token.txt", CreationCollisionOption.OpenIfExists)).Result;
+
+                securityToken = Guid.Empty;
+            }
+
+
+
 #elif WINDOWS
             try
             {
-                ip = File.ReadAllText(AppDomain.CurrentDomain.BaseDirectory + "\\connection.txt");
+                ip = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "connection.txt"));
             }
             catch (Exception e)
             {
-                File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "\\connection.txt", ip);
+                File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "connection.txt"), ip);
                 ip = "localhost";
             }
+
+
+            try
+            {
+                securityToken = new Guid(File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "token.txt")));
+            }
+            catch (Exception e)
+            {
+                File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "token.txt"), "");
+                securityToken = Guid.Empty;
+            }
+
+
+
+
 #endif
             _tcpClient = new TcpClient();
             _tcpClient.Connect(ip, 25565);
@@ -207,55 +244,6 @@ namespace Playerdom.Shared
                                         {
                                             if (char.IsLetter(key))
                                                 key = char.ToLower(key);
-                                            else
-                                            {
-                                                //switch (e.Character)
-                                                //{
-                                                //    case Keys.OemBackslash:
-                                                //        key = '\\';
-                                                //        break;
-
-                                                //    case Keys.OemCloseBrackets:
-                                                //        key = ']';
-                                                //        break;
-
-                                                //    case Keys.OemComma:
-                                                //        key = ',';
-                                                //        break;
-
-                                                //    case Keys.OemMinus:
-                                                //        key = '-';
-                                                //        break;
-
-                                                //    case Keys.OemPeriod:
-                                                //        key = '.';
-                                                //        break;
-
-                                                //    case Keys.OemPipe:
-                                                //        key = '|';
-                                                //        break;
-
-                                                //    case Keys.OemPlus:
-                                                //        key = '+';
-                                                //        break;
-
-                                                //    case Keys.OemQuestion:
-                                                //        key = '?';
-                                                //        break;
-
-                                                //    case Keys.OemQuotes:
-                                                //        key = '\"';
-                                                //        break;
-
-                                                //    case Keys.OemSemicolon:
-                                                //        key = ';';
-                                                //        break;
-
-                                                //    case Keys.OemTilde:
-                                                //        key = '~';
-                                                //        break;
-                                                //}
-                                            }
                                         }
                                         else if (char.IsDigit(key))
                                             switch (key)
@@ -709,7 +697,7 @@ namespace Playerdom.Shared
 
 
 #elif WINDOWS
-                File.WriteAllText(AppDomain.CurrentDomain.BaseDirectory + "\\" + e.GetType().ToString() + ".txt", e.StackTrace);
+                File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, e.GetType().ToString() + ".txt"), e.StackTrace);
 #endif
         }
 
@@ -717,6 +705,11 @@ namespace Playerdom.Shared
         {
             CerasSerializer _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.config);
             CerasSerializer _sendCeras = new CerasSerializer(PlayerdomCerasSettings.config);
+
+
+            _sendCeras.WriteToStream(_netStream, securityToken);
+
+            
             while (true)
             {
                 object obj = await _receiveCeras.ReadFromStream(_netStream);
@@ -762,12 +755,8 @@ namespace Playerdom.Shared
                         level.gameObjects.TryAdd(focusedObject.Key, focusedObject.Value);
                     }
                 }
-                else if (obj is ConcurrentDictionary<Guid, GameObject>)
+                else if (obj is ConcurrentDictionary<Guid, GameObject> initialObjects)
                 {
-
-                    ConcurrentDictionary<Guid, GameObject> initialObjects = obj as ConcurrentDictionary<Guid, GameObject>;
-
-
                     Dictionary<Guid, GameObject> copyO = new Dictionary<Guid, GameObject>();
                     foreach (KeyValuePair<Guid, GameObject> kvp in level.gameObjects)
                     {
@@ -795,11 +784,8 @@ namespace Playerdom.Shared
                         }
                     }
                 }
-                else if (obj is ConcurrentDictionary<Guid, Entity>)
+                else if (obj is ConcurrentDictionary<Guid, Entity> newEntities)
                 {
-                    ConcurrentDictionary<Guid, Entity> newEntities = obj as ConcurrentDictionary<Guid, Entity>;
-
-
                     Dictionary<Guid, Entity> copyE = new Dictionary<Guid, Entity>();
                     foreach (KeyValuePair<Guid, Entity> kvp in level.gameEntities)
                     {
@@ -829,6 +815,19 @@ namespace Playerdom.Shared
                 else if(obj is List<ChatMessage> messages)
                 {
                     chatLog = messages;
+                }
+                else if(obj is Guid newToken)
+                {
+                    securityToken = newToken;
+
+#if WINDOWS_UAP
+                    StorageFile file;
+                    file = Task.Run(async () => await ApplicationData.Current.LocalFolder.CreateFileAsync("token.txt", CreationCollisionOption.OpenIfExists)).Result;
+
+                    File.WriteAllText(file.Path, newToken.ToString());
+#elif WINDOWS
+                    File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "token.txt"), newToken.ToString());
+#endif
                 }
                 else throw new Exception("Object " + obj.GetType() + " not supported");
             }

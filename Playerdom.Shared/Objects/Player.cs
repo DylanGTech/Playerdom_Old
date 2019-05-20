@@ -242,7 +242,7 @@ namespace Playerdom.Shared.Objects
         public override void Die(Map m)
         {
             Health = MaxHealth;
-            Position = new Point(0, 0);
+            Position = MapService.GenerateSpawnPoint(m);
             //base.Die();
         }
     }

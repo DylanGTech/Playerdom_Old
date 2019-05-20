@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PngToPldms", "PngToPldms\Pn
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Playerdom.Server.Core", "Playerdom.Server.Core\Playerdom.Server.Core.csproj", "{F25AB8C6-6475-4280-8AF9-E42BDEE6945D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Playerdom.Win32.Updater", "Playerdom.Win32.Updater\Playerdom.Win32.Updater.csproj", "{0469C769-52B6-410D-9798-BD481990C3FC}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Playerdom.Shared\Playerdom.Shared.projitems*{a0cdbd0e-3a41-42b7-9425-a838bc2c7383}*SharedItemsImports = 13
@@ -94,6 +96,22 @@ Global
 		{F25AB8C6-6475-4280-8AF9-E42BDEE6945D}.Release|x64.Build.0 = Release|Any CPU
 		{F25AB8C6-6475-4280-8AF9-E42BDEE6945D}.Release|x86.ActiveCfg = Release|Any CPU
 		{F25AB8C6-6475-4280-8AF9-E42BDEE6945D}.Release|x86.Build.0 = Release|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Debug|ARM.Build.0 = Debug|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Debug|x64.Build.0 = Debug|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Debug|x86.Build.0 = Debug|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Release|ARM.ActiveCfg = Release|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Release|ARM.Build.0 = Release|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Release|x64.ActiveCfg = Release|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Release|x64.Build.0 = Release|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Release|x86.ActiveCfg = Release|Any CPU
+		{0469C769-52B6-410D-9798-BD481990C3FC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

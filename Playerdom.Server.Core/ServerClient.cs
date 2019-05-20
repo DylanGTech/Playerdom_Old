@@ -2,11 +2,13 @@
 using Ceras.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using Playerdom.Server.Core;
 using Playerdom.Shared;
 using Playerdom.Shared.Models;
 using Playerdom.Shared.Objects;
 using Playerdom.Shared.Services;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,20 +16,23 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
 namespace Playerdom.Server
 {
     public class ServerClient : IDisposable
     {
 
-        private static ulong userIDCounter = 0; //TODO: Remove and replace with a system for users to identify themselves or log in 
+        public bool isLoggedIn { get; set; } = false;
+
+        public static LocalDatabase ldb = null;
+
 
         readonly TcpClient _tcpClient;
         readonly NetworkStream _netStream;
         readonly CerasSerializer _sendCeras;
         readonly CerasSerializer _receiveCeras;
+        readonly CerasSerializer _fileCeras;
 
-        public ulong? UserID { get; set; } = null;
+        public long? UserID { get; set; } = null;
 
         public string EndPointString
         {
@@ -40,20 +45,22 @@ namespace Playerdom.Server
         public bool HasMap { get; set; } = false;
         public bool NeedsAllInfo { get; set; } = true;
 
-        public bool IsInitialized { get; set; } = false;
-
         public KeyboardState InputState { get; set; }
 
         public ServerClient(TcpClient tcpClient)
         {
+
+            if(ldb == null)
+            {
+                ldb = new LocalDatabase(Environment.CurrentDirectory);
+            }
+
             _tcpClient = tcpClient;
             _netStream = tcpClient.GetStream();
 
-            UserID = userIDCounter;
-            userIDCounter++;
-
             _sendCeras = new CerasSerializer(PlayerdomCerasSettings.config);
             _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.config);
+            _fileCeras = new CerasSerializer(PlayerdomCerasSettings.config);
 
             Log("Player Joined");
             Program.chatLog.Enqueue(new ChatMessage() { senderID = 0, message = "[SERVER]: Player Joined", timeSent = DateTime.Now, textColor = Color.Orange });
@@ -72,7 +79,30 @@ namespace Playerdom.Server
 
         public void InitializePlayer()
         {
-            Program.level.gameObjects.TryAdd(FocusedObjectID, new Player(new Point(0, 0), new Vector2(Tile.SIZE_X, Tile.SIZE_Y), displayName: "Player"));
+
+            Player loadedPlayer = null;
+
+            if (!Directory.Exists(Path.Combine(Environment.CurrentDirectory, "Players")))
+                Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "Players"));
+
+            try
+            {
+                loadedPlayer = _fileCeras.Deserialize<Player>(File.ReadAllBytes(Path.Combine(Environment.CurrentDirectory, "Players", UserID.Value + ".bin")));
+                Log("Loaded Player Profile");
+            }
+            catch(Exception e)
+            {
+                loadedPlayer = new Player(MapService.GenerateSpawnPoint(Program.level), new Vector2(Tile.SIZE_X, Tile.SIZE_Y), displayName: "Player");
+
+
+                File.WriteAllBytes(Path.Combine(Environment.CurrentDirectory, "Players", UserID.Value + ".bin"), _fileCeras.Serialize(loadedPlayer));
+                Log("Created Player Profile");
+            }
+
+
+
+
+            Program.level.gameObjects.TryAdd(FocusedObjectID, loadedPlayer);
         }
 
         void StartReceivingMessages()
@@ -98,6 +128,12 @@ namespace Playerdom.Server
             });
         }
 
+        public void SavePlayerStats()
+        {
+            if(UserID != null)
+                File.WriteAllBytes(Path.Combine(Environment.CurrentDirectory, "Players", UserID.Value + ".bin"), _fileCeras.Serialize(Program.level.gameObjects[FocusedObjectID] as Player));
+        }
+
 
         void StartSendingMessages()
         {
@@ -107,7 +143,7 @@ namespace Playerdom.Server
                 {
                     try
                     {
-                        //lock (_sendCeras)
+                        if(isLoggedIn)
                         {
                             if (NeedsAllInfo)
                             {
@@ -182,14 +218,14 @@ namespace Playerdom.Server
 
         void HandleMessage(object obj)
         {
-            if (obj is KeyboardState)
+            if (obj is KeyboardState state)
             {
-                InputState = (KeyboardState)obj;
+                InputState = state;
 
             }
-            else if (obj is string)
+            else if (obj is string str)
             {
-                if ((string)obj == "MapAffirmation")
+                if (str == "MapAffirmation")
                 {
                     HasMap = true;
                 }
@@ -219,6 +255,29 @@ namespace Playerdom.Server
                         break;
                 }
             }
+            else if(obj is Guid token)
+            {
+                if (!isLoggedIn)
+                {
+
+                    Guid newToken = Guid.NewGuid();
+
+
+                    long? potentialID = ldb.GetPlayerID(token);
+                    if (potentialID != null)
+                    {
+                        UserID = potentialID.Value;
+                        ldb.UpdatePlayerToken(UserID.Value, token);
+                    }
+                    else
+                    {
+                        UserID = ldb.CreateNewPlayer(newToken);
+                    }
+
+
+                    Send(newToken);
+                }
+            }
             else throw new Exception("Unknown object type");
 
             LastUpdate = DateTime.Now;
@@ -238,10 +297,10 @@ namespace Playerdom.Server
 
         static void LogServerException(Exception e)
         {
-            string logPath = Environment.CurrentDirectory + "\\Logs\\error_" + DateTime.Now.ToString("yyyy-MM-dd_hh-mm-ss-tt") + ".txt";
+            string logPath = Path.Combine(Environment.CurrentDirectory, "Logs", "error_" + DateTime.Now.ToString("yyyy-MM-dd_hh-mm-ss-tt") + ".txt");
 
-            if (!Directory.Exists(Environment.CurrentDirectory + "\\Logs"))
-                Directory.CreateDirectory(Environment.CurrentDirectory + "\\Logs");
+            if (!Directory.Exists(Path.Combine(Environment.CurrentDirectory, "Logs")))
+                Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "Logs"));
 
             FileStream logFile = System.IO.File.Create(logPath);
             StreamWriter logWriter = new System.IO.StreamWriter(logFile);
@@ -259,10 +318,11 @@ namespace Playerdom.Server
 
         public string GetUsername()
         {
-            //TODO: Create Sysstem to retrieve a username or profile
+            //TODO: Create System to retrieve a username or profile
 
             if (UserID == null)
-                throw new NullReferenceException("User doesn't have an ID");
+                //throw new NullReferenceException("User doesn't have an ID");
+                return null;
 
 
             if (nickName == null)

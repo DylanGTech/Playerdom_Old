@@ -1,4 +1,5 @@
-﻿using Playerdom.Shared.Entities;
+﻿using Microsoft.Xna.Framework;
+using Playerdom.Shared.Entities;
 using Playerdom.Shared.Objects;
 using System;
 using System.Collections.Concurrent;
@@ -11,6 +12,9 @@ namespace Playerdom.Shared.Models
     {
         public const uint SIZE_X = 2048;
         public const uint SIZE_Y = 2048;
+
+        public Point spawnTileLocation;
+
 
         public string levelName = "";
         public Tile[,] tiles = new Tile[SIZE_X, SIZE_Y];
@@ -37,6 +41,7 @@ namespace Playerdom.Shared.Models
                 }
             }
 
+            m.spawnTileLocation = spawnTileLocation;
             m.gameObjects = new ConcurrentDictionary<Guid, GameObject>(gameObjects);
             m.gameEntities = new ConcurrentDictionary<Guid, Entity>(gameEntities);
 

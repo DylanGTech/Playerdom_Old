@@ -54,8 +54,9 @@ namespace Playerdom.Server
             {
                 foreach(KeyValuePair<string, ServerClient> sc in clients)
                 {
-                    if(!sc.Value.IsInitialized)
+                    if(!sc.Value.isLoggedIn && sc.Value.UserID != null)
                     {
+                        sc.Value.isLoggedIn = true;
                         sc.Value.InitializePlayer();
                     }
                     
@@ -70,6 +71,7 @@ namespace Playerdom.Server
                 while(leavingPlayers.TryDequeue(out string endpoint))
                 {
                     clients.TryRemove(endpoint, out ServerClient sc);
+                    sc.SavePlayerStats();
 
                     if(sc != null)
                     {

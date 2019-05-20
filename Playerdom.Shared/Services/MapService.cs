@@ -30,6 +30,8 @@ namespace Playerdom.Shared.Services
 
             Random r = new Random(DateTime.Now.Millisecond);
 
+            m.spawnTileLocation = new Point(r.Next(0, (int)Map.SIZE_X), r.Next(0, (int)Map.SIZE_Y));
+
             for (int y = 0; y < Map.SIZE_Y; y++)
             {
                 for (int x = 0; x < Map.SIZE_X; x++)
@@ -470,7 +472,21 @@ namespace Playerdom.Shared.Services
             }
         }
 
+        public static Point GenerateSpawnPoint(Map m)
+        {
+            Random r = new Random();
 
+            Point spawnPoint = new Point(m.spawnTileLocation.X * (int)Tile.SIZE_X + r.Next((int)Tile.SIZE_X * -5, (int)Tile.SIZE_X * 5), m.spawnTileLocation.Y * (int)Tile.SIZE_Y + r.Next((int)Tile.SIZE_Y * -5, (int)Tile.SIZE_Y * 5));
+
+            if (spawnPoint.X < 0) spawnPoint.X = 0;
+            else if (spawnPoint.X > (Map.SIZE_X - 1) * Tile.SIZE_X) spawnPoint.X = (int)((Map.SIZE_X - 1) * Tile.SIZE_X);
+
+
+            if (spawnPoint.Y < 0) spawnPoint.Y = 0;
+            else if (spawnPoint.Y > (Map.SIZE_Y - 1) * Tile.SIZE_Y) spawnPoint.Y = (int)((Map.SIZE_Y - 1) * Tile.SIZE_Y);
+
+            return spawnPoint;
+        }
 
         private static void GenerateLine(Map m, Point p0, Point p1, ushort newTypeID, byte newvariantID)
         {
@@ -547,13 +563,8 @@ namespace Playerdom.Shared.Services
                     }
                 }
             }
-
-
-
-
         }
     }
-
     public class MapColumn
     {
         public MapColumn(uint columnNumber, ushort[] typesColumn, byte[] variantsColumn)

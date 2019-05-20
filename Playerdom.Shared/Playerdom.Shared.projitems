@@ -27,6 +27,9 @@
     <MonoGameContentReference Include="$(MSBuildThisFileDirectory)Content\Content.mgcb" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)Version.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="$(MSBuildThisFileDirectory)Content\Content.mgcb" />
     <Content Include="$(MSBuildThisFileDirectory)Content\Structures\hello.pldms">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
