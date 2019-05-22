@@ -50,5 +50,4 @@ namespace Playerdom.Shared.Models
         public ushort typeID { get; set; } //Determines default properties
         public byte variantID { get; set; }
     }
-
 }

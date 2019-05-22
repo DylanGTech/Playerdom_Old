@@ -53,7 +53,7 @@ namespace Playerdom.Server.Core
 
             Log("Player Joined");
             //TODO: Parse dates into shorter HH:mm formats.
-            Program.chatLog.Enqueue(new ChatMessage { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Joined ", timeSent = DateTime.Now, textColor = Color.Orange });
+            Program.ChatLog.Enqueue(new ChatMessage { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Joined ", timeSent = DateTime.Now, textColor = Color.Orange });
 
             FocusedObjectID = Guid.NewGuid();
             InputState = new KeyboardState();
@@ -79,7 +79,7 @@ namespace Playerdom.Server.Core
                 {
                     // Keep receiving packets from the client and respond to them
                     // Eventually when the client disconnects we'll just get an exception and end the thread...
-                    while (Program.clients.ContainsKey(EndPointString))
+                    while (Program.Clients.ContainsKey(EndPointString))
                     {
                         var obj = await _receiveCeras.ReadFromStream(_netStream);
                         HandleMessage(obj);
@@ -87,8 +87,8 @@ namespace Playerdom.Server.Core
                 }
                 catch (Exception e)
                 {
-                    if (!Program.leavingPlayers.Contains(EndPointString))
-                        Program.leavingPlayers.Enqueue(EndPointString);
+                    if (!Program.LeavingPlayers.Contains(EndPointString))
+                        Program.LeavingPlayers.Enqueue(EndPointString);
                     LogServerException(e);
                 }
             });
@@ -98,7 +98,7 @@ namespace Playerdom.Server.Core
         {
             Task.Run(() =>
             {
-                while (Program.clients.ContainsKey(EndPointString))
+                while (Program.Clients.ContainsKey(EndPointString))
                 {
                     try
                     {
@@ -145,15 +145,15 @@ namespace Playerdom.Server.Core
                                 Send(Program.level.gameEntities);
 
                                 //All chat messages
-                                Send(Program.chatLog.ToList());
+                                Send(Program.ChatLog.ToList());
                             }
                         }
                     }
                     catch (Exception e)
                     {
                         //Log($"Error while handling client '{_tcpClient.Client.RemoteEndPoint}': {e}");
-                        if (!Program.leavingPlayers.Contains(EndPointString))
-                            Program.leavingPlayers.Enqueue(EndPointString);
+                        if (!Program.LeavingPlayers.Contains(EndPointString))
+                            Program.LeavingPlayers.Enqueue(EndPointString);
 
                         LogServerException(e);
                     }
@@ -194,12 +194,15 @@ namespace Playerdom.Server.Core
                                     if (pairValue.Length > 256)
                                         pairValue = pairValue.Substring(0, 256);
 
-
-
                                     if (pairValue[0] == '/')
                                         ProcessCommand(pairValue);
-                                    else
-                                        Program.chatLog.Enqueue(new ChatMessage { message = string.Format("{0} [{1}]: {2}", DateTime.Now.ToString("HH:mm"), GetUsername(), pairValue), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.White });
+                                    else if (UserID != null)
+                                        Program.ChatLog.Enqueue(new ChatMessage
+                                        {
+                                            message =
+                                                $"{DateTime.Now:HH:mm} [{GetUsername()}]: {pairValue}",
+                                            senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.White
+                                        });
                                 }
                                 break;
                         }
@@ -217,7 +220,7 @@ namespace Playerdom.Server.Core
 
         private void Send(object obj)
         {
-            if (Program.clients.ContainsKey(EndPointString))
+            if (Program.Clients.ContainsKey(EndPointString))
                 _sendCeras.WriteToStream(_netStream, obj);
         }
 
@@ -263,7 +266,7 @@ namespace Playerdom.Server.Core
             string[] args = command.Split(' ');
 
             if (args[0] != "nick" || args.Length != 2 || args[1].Length > 48) return;
-            if (Program.clients.Count(c => c.Value._nickName == args[1]) != 0) return;
+            if (Program.Clients.Count(c => c.Value._nickName == args[1]) != 0) return;
             string oldName = GetUsername();
 
             _nickName = args[1];
@@ -271,7 +274,7 @@ namespace Playerdom.Server.Core
             Program.level.gameObjects[FocusedObjectID].SetDisplayName(args[1]);
 
             if (UserID != null)
-                Program.chatLog.Enqueue(new ChatMessage
+                Program.ChatLog.Enqueue(new ChatMessage
                 {
                     message =
                         $"{DateTime.Now:HH:mm} [Server]: {oldName} is now known as {_nickName}",

@@ -12,7 +12,6 @@ namespace Playerdom.Shared.Objects
     {
         public Enemy(Point position, Vector2 size, uint level = 1, uint xp = 0, uint speed = 4, bool isHalted = false, bool isSolid = true, uint health = 0, string displayName = "Enemy", ObjectType type = ObjectType.EnemyNPC, DirectionY facingDirectionY = DirectionY.Center, DirectionX facingDirectionX = DirectionX.Center, Guid? objectTalkingTo = null, decimal money = 0)
         {
-
             Position = position;
             IsSolid = isSolid;
             Size = size;
@@ -38,12 +37,14 @@ namespace Playerdom.Shared.Objects
 
             base.UpdateStats(o);
         }
+
         public override void LoadContent(ContentManager content, GraphicsDevice device)
         {
             ActiveTexture = content.Load<Texture2D>("enemy");
 
             base.LoadContent(content, device);
         }
+
         public override void Update(GameTime time, Map map, KeyboardState ks, Guid objectGuid)
         {
             //GameObject selectedEnemy;

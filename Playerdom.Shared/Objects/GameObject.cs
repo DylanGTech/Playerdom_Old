@@ -85,7 +85,6 @@ namespace Playerdom.Shared.Objects
 
         public bool CanBeHurt => !isInvincible && DateTime.Compare(DateTime.Now, wasLastHurt.AddSeconds(1)) > 0;
 
-
         public virtual void LoadContent(ContentManager content, GraphicsDevice device)
         {
             rect = new Texture2D(device, 1, 1);
@@ -137,7 +136,6 @@ namespace Playerdom.Shared.Objects
         {
             if (CanBeHurt || DateTime.Now.Ticks % 2 == 1)
                 spriteBatch.Draw(ActiveTexture, new Rectangle((int)((target.Width / 2) - (Size.X / 2) - centerOffset.X), (int)((target.Height / 2) - (Size.Y / 2) - centerOffset.Y), (int)Size.X, (int)Size.Y), Color.White);
-
         }
 
         public virtual void DrawDialog(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset, RenderTarget2D target)
@@ -178,7 +176,6 @@ namespace Playerdom.Shared.Objects
             Position = newPosition;
         }
 
-
         public virtual void Heal(uint points)
         {
             if (Health + points > MaxHealth) Health = MaxHealth;
@@ -213,6 +210,7 @@ namespace Playerdom.Shared.Objects
             }
             else Health = (uint)(Health + offset);
         }
+
         public virtual void ChangeXP(int offset)
         {
             if (offset + XP < XP)
@@ -226,27 +224,32 @@ namespace Playerdom.Shared.Objects
             }
             else XP = (uint)(XP + offset);
         }
+
         public virtual void Die(Map m)
         {
             MarkedForDeletion = true;
         }
 
-        public Microsoft.Xna.Framework.Vector2 Distance(GameObject otherObject)
+        public Vector2 Distance(GameObject otherObject)
         {
-            return new Microsoft.Xna.Framework.Vector2((this.Position.X + Size.X / 2) - (otherObject.Position.X + otherObject.Size.X / 2), (this.Position.Y + Size.Y / 2) - (otherObject.Position.Y + otherObject.Size.Y / 2));
+            return new Vector2((this.Position.X + Size.X / 2) - (otherObject.Position.X + otherObject.Size.X / 2), (this.Position.Y + Size.Y / 2) - (otherObject.Position.Y + otherObject.Size.Y / 2));
         }
+
         public Microsoft.Xna.Framework.Vector2 Distance(Entity entity)
         {
-            return new Microsoft.Xna.Framework.Vector2((this.Position.X + Size.X / 2) - (entity.Position.X + entity.Size.X / 2), (this.Position.Y + Size.Y / 2) - (entity.Position.Y + entity.Size.Y / 2));
+            return new Vector2((this.Position.X + Size.X / 2) - (entity.Position.X + entity.Size.X / 2), (this.Position.Y + Size.Y / 2) - (entity.Position.Y + entity.Size.Y / 2));
         }
+
         public bool CheckCollision(GameObject otherObject)
         {
             return BoundingBox.Intersects(otherObject.BoundingBox);
         }
+
         public virtual void HandleCollision(GameObject otherObject, Map m)
         {
 
         }
+
         public virtual void HandleCollision(Entity entity, Map m)
         {
             if (entity.GetType() == typeof(Bullet))
@@ -316,7 +319,6 @@ namespace Playerdom.Shared.Objects
         {
             DisplayName = newName;
         }
-
     }
 
     public enum ObjectType : byte

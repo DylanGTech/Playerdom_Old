@@ -27,7 +27,7 @@ namespace Playerdom.Shared.Entities
             get; protected set;
         }
 
-        public Microsoft.Xna.Framework.Vector2 Size
+        public Vector2 Size
         {
             get; protected set;
         }

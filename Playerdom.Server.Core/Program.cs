@@ -20,11 +20,11 @@ namespace Playerdom.Server.Core
 {
     public sealed class Program
     {
-        public static readonly ConcurrentQueue<ChatMessage> chatLog = new ConcurrentQueue<ChatMessage>();
+        public static readonly ConcurrentQueue<ChatMessage> ChatLog = new ConcurrentQueue<ChatMessage>();
 
-        public static readonly ConcurrentQueue<string> leavingPlayers = new ConcurrentQueue<string>();
+        public static readonly ConcurrentQueue<string> LeavingPlayers = new ConcurrentQueue<string>();
         public static Map level = new Map();
-        public static readonly ConcurrentDictionary<string, ServerClient> clients = new ConcurrentDictionary<string, ServerClient>();
+        public static readonly ConcurrentDictionary<string, ServerClient> Clients = new ConcurrentDictionary<string, ServerClient>();
 
         private static void AcceptClients()
         {
@@ -37,7 +37,7 @@ namespace Playerdom.Server.Core
                 TcpClient tcpClient = listener.AcceptTcpClient();
 
                 ServerClient sc = new ServerClient(tcpClient);
-                clients.TryAdd(sc.EndPointString, sc);
+                Clients.TryAdd(sc.EndPointString, sc);
                 sc.Start();
             }
         }
@@ -47,7 +47,7 @@ namespace Playerdom.Server.Core
             // While true? Use a cancellation token.
             while (true)
             {
-                foreach (var (_, value) in clients)
+                foreach (var (_, value) in Clients)
                 {
                     if (!value.IsInitialized)
                     {
@@ -55,18 +55,18 @@ namespace Playerdom.Server.Core
                     }
 
                     if (value.LastUpdate.AddSeconds(45) > DateTime.Now) continue;
-                    if (!leavingPlayers.Contains(value.EndPointString))
-                        leavingPlayers.Enqueue(value.EndPointString);
+                    if (!LeavingPlayers.Contains(value.EndPointString))
+                        LeavingPlayers.Enqueue(value.EndPointString);
                 }
 
-                while (leavingPlayers.TryDequeue(out string endpoint))
+                while (LeavingPlayers.TryDequeue(out string endpoint))
                 {
-                    clients.TryRemove(endpoint, out ServerClient sc);
+                    Clients.TryRemove(endpoint, out ServerClient sc);
 
                     if (sc == null) continue;
                     ServerClient.Log("Player left");
                     level.gameObjects.TryRemove(sc.FocusedObjectID, out GameObject player);
-                    chatLog.Enqueue(new ChatMessage() { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Left ", textColor = Color.Orange });
+                    ChatLog.Enqueue(new ChatMessage() { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Left ", textColor = Color.Orange });
                     sc.Dispose();
                 }
 
@@ -79,9 +79,9 @@ namespace Playerdom.Server.Core
                 foreach (var (key, value) in level.gameObjects)
                 {
                     value.Update(gameTime, level,
-                        clients.All(cl => cl.Value.FocusedObjectID != key)
+                        Clients.All(cl => cl.Value.FocusedObjectID != key)
                             ? new KeyboardState()
-                            : clients.First(cl => cl.Value.FocusedObjectID == key).Value.InputState, key);
+                            : Clients.First(cl => cl.Value.FocusedObjectID == key).Value.InputState, key);
                 }
 
                 foreach (KeyValuePair<Guid, GameObject> g1 in level.gameObjects)
@@ -133,9 +133,9 @@ namespace Playerdom.Server.Core
                 //TODO: Auto clear text based on amount of messages and time
                 //System.Timers.Timer chatTimer = new System.Timers.Timer(6000);
 
-                while (chatLog.Count > 12) //&& chatTimer == 6000)
+                while (ChatLog.Count > 12) //&& chatTimer == 6000)
                 {
-                    chatLog.TryDequeue(out ChatMessage message);
+                    ChatLog.TryDequeue(out ChatMessage message);
                 }
                 // NEVER EVER EVER USE THREAD.SLEEP
                 Thread.Sleep(10);
@@ -167,7 +167,7 @@ namespace Playerdom.Server.Core
             {
                 try
                 {
-                    SaveMap(level.Clone(), clients);
+                    SaveMap(level.Clone(), Clients);
                 }
                 catch(Exception exception)
                 {

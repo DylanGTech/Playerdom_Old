@@ -14,7 +14,7 @@ namespace Playerdom.Shared.Objects
     {
         private DateTime _bulletTimer;
         private DateTime _dropTimer;
-        private Random _rnd;
+        private readonly Random _rnd;
 
         public Player(Point position, Vector2 size, uint level = 1, uint xp = 0, uint speed = 8, bool isHalted = false, bool isSolid = true, uint health = 0, string displayName = "Player", ObjectType type = ObjectType.Player, DirectionY facingDirectionY = DirectionY.Center, DirectionX facingDirectionX = DirectionX.Center, bool isTalking = false, string dialogText = "", Guid? objectTalkingTo = null, decimal money = 0)
         {
@@ -153,8 +153,8 @@ namespace Playerdom.Shared.Objects
                 {
                     if (go1.Key == objectGuid || go1.Value.IsTalking ||
                         go1.Value.ObjectTalkingTo != null && go1.Value.ObjectTalkingTo != objectGuid) continue;
-                    Vector2 d = Distance(go1.Value);
-                    if (!(Math.Abs(d.X) <= Tile.SIZE_X * 2) || !(Math.Abs(d.Y) <= Tile.SIZE_Y * 2)) continue;
+                    var (x, y) = Distance(go1.Value);
+                    if (!(Math.Abs(x) <= Tile.SIZE_X * 2) || !(Math.Abs(y) <= Tile.SIZE_Y * 2)) continue;
                     talkingToObject = true;
                     go1.Value.StartConversation(new KeyValuePair<Guid, GameObject>(objectGuid, this), go1.Key);
                 }
@@ -200,7 +200,6 @@ namespace Playerdom.Shared.Objects
 
             if(ks.IsKeyDown(Keys.Q) && DateTime.Now > _dropTimer)
             {
-
                 if(Money >= 1)
                 {
                     map.gameEntities.TryAdd(Guid.NewGuid(), new MoneyDrop(new Point((int)(Position.X + Size.X / 2), (int)(Position.Y + Size.Y / 2)), new Vector2(32, 32), 1, this));
