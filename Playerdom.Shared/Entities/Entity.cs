@@ -2,18 +2,14 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Playerdom.Shared.Models;
-using Playerdom.Shared.Objects;
 using Playerdom.Shared.Services;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Playerdom.Shared.Entities
 {
     public class Entity : IDisposable
     {
         public bool MarkedForDeletion = false;
-
 
         public Point Position
         {
@@ -24,15 +20,7 @@ namespace Playerdom.Shared.Entities
         {
             get; protected set;
         }
-        public Rectangle BoundingBox
-        {
-            get
-            {
-                return new Rectangle(Position.X, Position.Y, (int)Size.X, (int)Size.Y);
-            }
-        }
-
-
+        public Rectangle BoundingBox => new Rectangle(Position.X, Position.Y, (int)Size.X, (int)Size.Y);
 
         public bool IsHalted
         {
@@ -49,11 +37,11 @@ namespace Playerdom.Shared.Entities
 
         }
 
-
         public virtual void Update(GameTime time, Map map)
         {
 
         }
+
         public virtual void Draw(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset, RenderTarget2D target)
         {
 
@@ -66,6 +54,7 @@ namespace Playerdom.Shared.Entities
                 CollisionService.MoveWithTileCollision(this, map, new Microsoft.Xna.Framework.Vector2((float)xOffset, (float)yOffset));
             }
         }
+
         public virtual void ChangePosition(int xOffset, int yOffset)
         {
             Point newPosition = new Point(Position.X + xOffset, Position.Y + yOffset);
@@ -81,8 +70,7 @@ namespace Playerdom.Shared.Entities
 
         public void Dispose()
         {
-            if(ActiveTexture != null)
-                ActiveTexture.Dispose();
+            ActiveTexture?.Dispose();
         }
 
         public virtual void UpdateStats(Entity e)

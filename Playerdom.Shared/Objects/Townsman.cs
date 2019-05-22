@@ -3,11 +3,8 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Playerdom.Shared.Models;
-using Playerdom.Shared.Objects;
-using Playerdom.Shared.Services;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Playerdom.Shared.Objects
@@ -23,8 +20,7 @@ namespace Playerdom.Shared.Objects
             Level = level;
             XP = xp;
             Speed = speed;
-            if (health == 0) Health = MaxHealth;
-            else Health = health; Type = type;
+            Health = health == 0 ? MaxHealth : health; Type = type;
             IsHalted = isHalted;
             DisplayName = displayName;
             FacingDirectionX = facingDirectionX;
@@ -42,12 +38,14 @@ namespace Playerdom.Shared.Objects
 
             base.UpdateStats(o);
         }
+
         public override void LoadContent(ContentManager content, GraphicsDevice device)
         {
             ActiveTexture = content.Load<Texture2D>("townsman");
 
             base.LoadContent(content, device);
         }
+
         public override void Update(GameTime time, Map map, KeyboardState ks, Guid objectGuid)
         {
             /*
@@ -76,16 +74,12 @@ namespace Playerdom.Shared.Objects
             ObjectTalkingTo = otherObject.Key;
             otherObject.Value.ObjectTalkingTo = thisObjectId;
 
-
             Task.Run(async () => await otherObject.Value.DisplayDialogAsync("Hello " + DisplayName + "!"));
-
 
             if(otherObject.Value.TransferMoney((decimal)0.50, this))
                 Task.Run(async () => await DisplayDialogAsync("Hello " + otherObject.Value.DisplayName + ". Take some Ruppies!"));
             else
                 Task.Run(async () => await DisplayDialogAsync("Sorry " + otherObject.Value.DisplayName + ", I'm all out of money"));
-
-
         }
     }
 }

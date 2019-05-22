@@ -3,12 +3,8 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Playerdom.Shared.Models;
-using Playerdom.Shared.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Playerdom.Shared.Objects
 {
@@ -54,18 +50,15 @@ namespace Playerdom.Shared.Objects
 
             foreach(KeyValuePair<Guid, GameObject> o in map.gameObjects)
             {
-                if(o.Value.GetType() == typeof(Player))
+                if (o.Value.GetType() != typeof(Player)) continue;
+                var (x, y) = Distance(o.Value);
+                if (Math.Abs(x) <= Tile.SIZE_X * 16 || Math.Abs(y) <= Tile.SIZE_Y * 16)
                 {
-                    Vector2 distance = Distance(o.Value);
-                    if (Math.Abs(distance.X) <= Tile.SIZE_X * 16 || Math.Abs(distance.Y) <= Tile.SIZE_Y * 16)
-                    {
+                    double angle = Math.Atan2(y, x);
 
-                        double angle = Math.Atan2(distance.Y, distance.X);
-
-                        Move((int)(-Speed * Math.Cos(angle)), (int)(-Speed * Math.Sin(angle)), map);
-                    }
-                    break;
+                    Move((int)(-Speed * Math.Cos(angle)), (int)(-Speed * Math.Sin(angle)), map);
                 }
+                break;
             }
 
             base.Update(time, map, ks, objectGuid);

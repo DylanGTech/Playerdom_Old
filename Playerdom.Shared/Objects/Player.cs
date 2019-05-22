@@ -2,13 +2,9 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using Playerdom.Shared.Objects;
-using Playerdom.Shared.Services;
 using Playerdom.Shared.Entities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Playerdom.Shared.Models;
 
@@ -18,7 +14,6 @@ namespace Playerdom.Shared.Objects
     {
         private DateTime _bulletTimer;
         private DateTime dropTimer;
-
 
         public Player(Point position, Vector2 size, uint level = 1, uint xp = 0, uint speed = 8, bool isHalted = false, bool isSolid = true, uint health = 0, string displayName = "Player", ObjectType type = ObjectType.Player, DirectionY facingDirectionY = DirectionY.Center, DirectionX facingDirectionX = DirectionX.Center, bool isTalking = false, string dialogText = "", Guid? objectTalkingTo = null, decimal money = 0)
         {
@@ -48,7 +43,6 @@ namespace Playerdom.Shared.Objects
 
             _bulletTimer = ((Player) o)._bulletTimer;
 
-
             base.UpdateStats(o);
         }
 
@@ -58,6 +52,7 @@ namespace Playerdom.Shared.Objects
 
             base.LoadContent(content, device);
         }
+
         public override void HandleCollision(GameObject otherObject, Map m)
         {
             if (otherObject.GetType() == typeof(Enemy))
@@ -66,6 +61,7 @@ namespace Playerdom.Shared.Objects
             }
             base.HandleCollision(otherObject, m);
         }
+
         public override void HandleCollision(Entity entity, Map m)
         {
             base.HandleCollision(entity, m);
@@ -73,33 +69,32 @@ namespace Playerdom.Shared.Objects
 
         public override void Update(GameTime time, Map map, KeyboardState ks, Guid objectGuid)
         {
-            Vector2 distance = new Vector2();
+            var (f, f1) = new Vector2();
 
             if (ks.IsKeyDown(Keys.W))
             {
-                distance.Y -= Speed;
+                f1 -= Speed;
 
             }
             if (ks.IsKeyDown(Keys.S))
             {
-                distance.Y += Speed;
+                f1 += Speed;
             }
             if (ks.IsKeyDown(Keys.A))
             {
-                distance.X -= Speed;
+                f -= Speed;
             }
             if (ks.IsKeyDown(Keys.D))
             {
-                distance.X += Speed;
+                f += Speed;
 
             }
-            if (distance.X != 0 || distance.Y != 0)
+            if (f != 0 || f1 != 0)
             {
-                double angle = Math.Atan2(distance.Y, distance.X);
+                double angle = Math.Atan2(f1, f);
 
                 Move((int)(Speed * Math.Cos(angle)), (int)(Speed * Math.Sin(angle)), map);
             }
-
 
             if (IsTalking)
             {

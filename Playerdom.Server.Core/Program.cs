@@ -1,37 +1,37 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using Playerdom.Shared.Objects;
-using Playerdom.Shared.Services;
-using Playerdom.Shared;
-using Playerdom.Shared.Entities;
-using System;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Net.Sockets;
+using System.Threading;
 using Ceras;
-using System.Collections.Concurrent;
-using System.IO;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
+using Playerdom.Shared;
+using Playerdom.Shared.Entities;
 using Playerdom.Shared.Models;
+using Playerdom.Shared.Objects;
+using Playerdom.Shared.Services;
 
 //Wrong namespace
-namespace Playerdom.Server
+namespace Playerdom.Server.Core
 {
-    public class Program
+    public sealed class Program
     {
-
         public static readonly ConcurrentQueue<ChatMessage> chatLog = new ConcurrentQueue<ChatMessage>();
 
         public static readonly ConcurrentQueue<string> leavingPlayers = new ConcurrentQueue<string>();
         public static Map level = new Map();
         public static readonly ConcurrentDictionary<string, ServerClient> clients = new ConcurrentDictionary<string, ServerClient>();
 
-        static void AcceptClients()
+        private static void AcceptClients()
         {
             TcpListener listener = new TcpListener(IPAddress.Any, 25565);
             listener.Start();
 
+            // While true? Use a cancellation token.
             while (true)
             {
                 TcpClient tcpClient = listener.AcceptTcpClient();
@@ -40,24 +40,23 @@ namespace Playerdom.Server
                 clients.TryAdd(sc.EndPointString, sc);
                 sc.Start();
             }
-
         }
 
-        static void UpdateAll()
+        private static void UpdateAll()
         {
+            // While true? Use a cancellation token.
             while (true)
             {
-                foreach (KeyValuePair<string, ServerClient> sc in clients)
+                foreach (var (_, value) in clients)
                 {
-                    if (!sc.Value.IsInitialized)
+                    if (!value.IsInitialized)
                     {
-                        sc.Value.InitializePlayer();
+                        value.InitializePlayer();
                     }
 
-                    if (sc.Value.LastUpdate.AddSeconds(45) > DateTime.Now) continue;
-                    if (!leavingPlayers.Contains(sc.Value.EndPointString))
-                        leavingPlayers.Enqueue(sc.Value.EndPointString);
-
+                    if (value.LastUpdate.AddSeconds(45) > DateTime.Now) continue;
+                    if (!leavingPlayers.Contains(value.EndPointString))
+                        leavingPlayers.Enqueue(value.EndPointString);
                 }
 
                 while (leavingPlayers.TryDequeue(out string endpoint))
@@ -65,12 +64,11 @@ namespace Playerdom.Server
                     clients.TryRemove(endpoint, out ServerClient sc);
 
                     if (sc == null) continue;
-                    sc.Log("Player left");
+                    ServerClient.Log("Player left");
                     level.gameObjects.TryRemove(sc.FocusedObjectID, out GameObject player);
                     chatLog.Enqueue(new ChatMessage() { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Left ", textColor = Color.Orange });
                     sc.Dispose();
                 }
-
 
                 GameTime gameTime = new GameTime();
                 foreach (KeyValuePair<Guid, Entity> ent in level.gameEntities)
@@ -85,6 +83,7 @@ namespace Playerdom.Server
                             ? new KeyboardState()
                             : clients.First(cl => cl.Value.FocusedObjectID == key).Value.InputState, key);
                 }
+
                 foreach (KeyValuePair<Guid, GameObject> g1 in level.gameObjects)
                 {
                     foreach (KeyValuePair<Guid, GameObject> g2 in level.gameObjects)
@@ -104,18 +103,18 @@ namespace Playerdom.Server
                         }
                     }
                 }
-                foreach (KeyValuePair<Guid, GameObject> o in level.gameObjects)
+                foreach (var (key, value) in level.gameObjects)
                 {
-                    if (o.Value.MarkedForDeletion)
+                    if (value.MarkedForDeletion)
                     {
-                        level.objectsMarkedForDeletion.Add(o.Key);
+                        level.objectsMarkedForDeletion.Add(key);
                     }
                 }
-                foreach (KeyValuePair<Guid, Entity> ent in level.gameEntities)
+                foreach (var (key, value) in level.gameEntities)
                 {
-                    if (ent.Value.MarkedForDeletion)
+                    if (value.MarkedForDeletion)
                     {
-                        level.entitiesMarkedForDeletion.Add(ent.Key);
+                        level.entitiesMarkedForDeletion.Add(key);
                     }
                 }
                 
@@ -134,21 +133,19 @@ namespace Playerdom.Server
                 //TODO: Auto clear text based on amount of messages and time
                 //System.Timers.Timer chatTimer = new System.Timers.Timer(6000);
 
-
                 while (chatLog.Count > 12) //&& chatTimer == 6000)
                 {
                     chatLog.TryDequeue(out ChatMessage message);
                 }
-
+                // NEVER EVER EVER USE THREAD.SLEEP
                 Thread.Sleep(10);
             }
         }
 
-        private static void Main(string[] args)
+        private static void Main()
         {
             Console.WriteLine("Playerdom Test Server started at {0:HH:mm:ss}", DateTime.Now);
             PlayerdomCerasSettings.Initialize();
-
 
             try
             {
@@ -162,9 +159,8 @@ namespace Playerdom.Server
                 Console.WriteLine("{0:HH:mm}", DateTime.Now.ToString("HH:mm") + " Creating Map");
             }
 
-
-            new Thread(() => AcceptClients()).Start();
-            new Thread(() => UpdateAll()).Start();
+            new Thread(AcceptClients).Start();
+            new Thread(UpdateAll).Start();
 
             System.Timers.Timer t = new System.Timers.Timer(60000); //Save every minute
             t.Elapsed += (sender, e) =>
@@ -207,15 +203,13 @@ namespace Playerdom.Server
             }
             mapToSave.entitiesMarkedForDeletion.Clear();
 
-
-            CerasSerializer serializer = new CerasSerializer(PlayerdomCerasSettings.config);
+            CerasSerializer serializer = new CerasSerializer(PlayerdomCerasSettings.Config);
 
             if (!Directory.Exists(mapToSave.levelName))
             {
                 Directory.CreateDirectory(mapToSave.levelName);
             }
             string worldPath = mapToSave.levelName + Path.DirectorySeparatorChar;
-
 
             using (FileStream stream = new FileStream(worldPath + "tiles.bin", FileMode.Create, FileAccess.Write, FileShare.Write))
             {
@@ -238,16 +232,14 @@ namespace Playerdom.Server
 
         public static Map LoadMap(string name)
         {
-            CerasSerializer serializer = new CerasSerializer(PlayerdomCerasSettings.config);
+            CerasSerializer serializer = new CerasSerializer(PlayerdomCerasSettings.Config);
             Map m = new Map {levelName = name};
-
 
             if (!Directory.Exists(m.levelName))
             {
                 Directory.CreateDirectory(m.levelName);
             }
             string worldPath = m.levelName + Path.DirectorySeparatorChar;
-
 
             using (FileStream stream = new FileStream(worldPath + "tiles.bin", FileMode.Open, FileAccess.Read, FileShare.Read))
             {
