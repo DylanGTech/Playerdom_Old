@@ -215,9 +215,9 @@ namespace Playerdom.Server.Core
             {
                 using (BinaryWriter bw = new BinaryWriter(stream))
                 {
-                    for (int y = 0; y < Map.SIZE_Y; y++)
+                    for (int y = 0; y < Map.SizeY; y++)
                     {
-                        for (int x = 0; x < Map.SIZE_X; x++)
+                        for (int x = 0; x < Map.SizeX; x++)
                         {
                             bw.Write(mapToSave.tiles[x, y].typeID);
                             bw.Write(mapToSave.tiles[x, y].variantID);
@@ -245,9 +245,9 @@ namespace Playerdom.Server.Core
             {
                 using (BinaryReader br = new BinaryReader(stream))
                 {
-                    for (int y = 0; y < Map.SIZE_Y; y++)
+                    for (int y = 0; y < Map.SizeY; y++)
                     {
-                        for (int x = 0; x < Map.SIZE_X; x++)
+                        for (int x = 0; x < Map.SizeX; x++)
                         {
                             m.tiles[x, y].typeID = br.ReadUInt16();
                             m.tiles[x, y].variantID = br.ReadByte();

@@ -136,7 +136,7 @@ namespace Playerdom.Shared
             _netStream = _tcpClient.GetStream();
 
 
-            level = new Map { tiles = new Tile[Map.SIZE_X, Map.SIZE_Y] };
+            level = new Map { tiles = new Tile[Map.SizeX, Map.SizeY] };
             Thread newThread = new Thread(ReceiveOutputAsync) { Name = "HandlingThread" };
             newThread.Start();
 
@@ -632,9 +632,9 @@ namespace Playerdom.Shared
             int xmax = XTilePosition + VIEW_DISTANCE;
 
             if (ymin < 0) ymin = 0;
-            if (ymax > Map.SIZE_Y) ymax = (int)Map.SIZE_Y;
+            if (ymax > Map.SizeY) ymax = (int)Map.SizeY;
             if (xmin < 0) xmin = 0;
-            if (xmax > Map.SIZE_X) xmax = (int)Map.SIZE_X;
+            if (xmax > Map.SizeX) xmax = (int)Map.SizeX;
 
 
             for (int y = ymin; y < ymax; y++)
@@ -713,7 +713,7 @@ namespace Playerdom.Shared
                     for (int i = 0; i < 32; i++)
                     {
 
-                        for (int j = 0; j < Map.SIZE_Y; j++)
+                        for (int j = 0; j < Map.SizeY; j++)
                         {
                             level.tiles[colArray[i].ColumnNumber, j].typeID = colArray[i].TypesColumn[j];
                             level.tiles[colArray[i].ColumnNumber, j].variantID = colArray[i].VariantsColumn[j];
@@ -721,7 +721,7 @@ namespace Playerdom.Shared
                     }
 
 
-                    if (colArray[31].ColumnNumber == Map.SIZE_X - 1)
+                    if (colArray[31].ColumnNumber == Map.SizeX - 1)
                     {
                         //lock(_sendCeras)
                         _sendCeras.WriteToStream(_netStream, "MapAffirmation");

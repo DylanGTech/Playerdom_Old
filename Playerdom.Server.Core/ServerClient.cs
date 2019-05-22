@@ -112,14 +112,14 @@ namespace Playerdom.Server.Core
 
                                 for (int i = 0; i < 32; i++)
                                 {
-                                    lc[i] = new MapColumn(0, new ushort[Map.SIZE_X], new byte[Map.SIZE_Y]);
+                                    lc[i] = new MapColumn(0, new ushort[Map.SizeX], new byte[Map.SizeY]);
                                 }
 
-                                for (uint i = 0; i < Map.SIZE_X; i++)
+                                for (uint i = 0; i < Map.SizeX; i++)
                                 {
 
                                     lc[i % 32].ColumnNumber = i;
-                                    for (int j = 0; j < Map.SIZE_Y; j++)
+                                    for (int j = 0; j < Map.SizeY; j++)
                                     {
                                         lc[i % 32].TypesColumn[j] = Program.level.tiles[i, j].typeID;
                                         lc[i % 32].VariantsColumn[j] = Program.level.tiles[i, j].variantID;

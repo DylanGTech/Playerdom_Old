@@ -18,8 +18,8 @@ namespace Playerdom.Shared.Services
 
             if (top < 0) top = 0;
             if (left < 0) left = 0;
-            if (bottom > Map.SIZE_Y - 2) bottom = (int)(Map.SIZE_Y - 3);
-            if (right > Map.SIZE_X - 2) right = (int)(Map.SIZE_X - 3);
+            if (bottom > Map.SizeY - 2) bottom = (int)(Map.SizeY - 3);
+            if (right > Map.SizeX - 2) right = (int)(Map.SizeX - 3);
 
 
             if (gameObject.IsSolid)
@@ -70,8 +70,8 @@ namespace Playerdom.Shared.Services
 
             if (top < 0) top = 0;
             if (left < 0) left = 0;
-            if (bottom > Map.SIZE_Y - 1) bottom = (int)(Map.SIZE_Y - 2);
-            if (right > Map.SIZE_X - 1) right = (int)(Map.SIZE_X - 2);
+            if (bottom > Map.SizeY - 1) bottom = (int)(Map.SizeY - 2);
+            if (right > Map.SizeX - 1) right = (int)(Map.SizeX - 2);
 
             for (int y = top; y <= bottom + 1; y++)
             {

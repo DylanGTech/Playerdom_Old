@@ -169,10 +169,10 @@ namespace Playerdom.Shared.Objects
         {
             Point newPosition = new Point(Position.X + xOffset, Position.Y + yOffset);
 
-            if (newPosition.X > Map.SIZE_X * Tile.SIZE_X) newPosition.X = (int)(Map.SIZE_X * Tile.SIZE_X - Size.X);
+            if (newPosition.X > Map.SizeX * Tile.SIZE_X) newPosition.X = (int)(Map.SizeX * Tile.SIZE_X - Size.X);
             else if (newPosition.X < 0) newPosition.X = 0;
 
-            if (newPosition.Y > Map.SIZE_Y * Tile.SIZE_Y) newPosition.Y = (int)(Map.SIZE_Y * Tile.SIZE_Y - Size.Y);
+            if (newPosition.Y > Map.SizeY * Tile.SIZE_Y) newPosition.Y = (int)(Map.SizeY * Tile.SIZE_Y - Size.Y);
             else if (newPosition.Y < 0) newPosition.Y = 0;
 
             Position = newPosition;

@@ -13,10 +13,12 @@ namespace Playerdom.Shared.Objects
     public class Player : GameObject
     {
         private DateTime _bulletTimer;
-        private DateTime dropTimer;
+        private DateTime _dropTimer;
+        private Random _rnd;
 
         public Player(Point position, Vector2 size, uint level = 1, uint xp = 0, uint speed = 8, bool isHalted = false, bool isSolid = true, uint health = 0, string displayName = "Player", ObjectType type = ObjectType.Player, DirectionY facingDirectionY = DirectionY.Center, DirectionX facingDirectionX = DirectionX.Center, bool isTalking = false, string dialogText = "", Guid? objectTalkingTo = null, decimal money = 0)
         {
+            _rnd = new Random(DateTime.Now.Millisecond);
             Position = position;
             IsSolid = isSolid;
             Size = size;
@@ -30,7 +32,7 @@ namespace Playerdom.Shared.Objects
             FacingDirectionY = facingDirectionY;
             DialogText = dialogText;
             _bulletTimer = DateTime.Now;
-            dropTimer = DateTime.Now;
+            _dropTimer = DateTime.Now;
             IsTalking = isTalking;
             ObjectTalkingTo = objectTalkingTo;
             Money = money;
@@ -101,11 +103,7 @@ namespace Playerdom.Shared.Objects
                 if (ObjectTalkingTo != null && map.gameObjects.TryGetValue(ObjectTalkingTo.Value, out GameObject ott))
                 {
                     var (x, y) = Distance(ott);
-                    if (Math.Abs(x) <= Tile.SIZE_X * 2 || Math.Abs(y) <= Tile.SIZE_Y * 2)
-                    {
-
-                    }
-                    else
+                    if (!(Math.Abs(x) <= Tile.SIZE_X * 2) && !(Math.Abs(y) <= Tile.SIZE_Y * 2))
                     {
                         ott.ObjectTalkingTo = null;
                         ObjectTalkingTo = null;
@@ -163,10 +161,10 @@ namespace Playerdom.Shared.Objects
                 if(!talkingToObject)
                 {
                     ObjectTalkingTo = null;
-                    Random r = new Random(DateTime.Now.Millisecond);
                     string text;
-                    switch (r.Next(0, 8))
+                    switch (_rnd.Next(0, 8))
                     {
+                        // Put strings into resource files, that way you can make it multi-lingual
                         default:
                             text = "Dylan would love it if I were to give him ideas.";
                             break;
@@ -200,7 +198,7 @@ namespace Playerdom.Shared.Objects
                 }
             }
 
-            if(ks.IsKeyDown(Keys.Q) && DateTime.Now > dropTimer)
+            if(ks.IsKeyDown(Keys.Q) && DateTime.Now > _dropTimer)
             {
 
                 if(Money >= 1)
@@ -215,7 +213,7 @@ namespace Playerdom.Shared.Objects
                 }
                 else if(!IsTalking)
                     Task.Run(async () => await DisplayDialogAsync("Oh no! I'm out of money!"));
-                dropTimer = DateTime.Now.AddSeconds(0.50);
+                _dropTimer = DateTime.Now.AddSeconds(0.50);
             }
 
             base.Update(time, map, ks, objectGuid);

@@ -44,8 +44,8 @@ namespace Playerdom.Shared.Entities
             Move((int)Velocity.X, (int)Velocity.Y, map);
 
             if (Position.X <= 0 || Position.Y <= 0 ||
-                Position.X + Size.X >= Map.SIZE_X * Tile.SIZE_X ||
-                Position.Y + Size.Y >= Map.SIZE_Y * Tile.SIZE_Y)
+                Position.X + Size.X >= Map.SizeX * Tile.SIZE_X ||
+                Position.Y + Size.Y >= Map.SizeY * Tile.SIZE_Y)
                 MarkedForDeletion = true;
         }
 

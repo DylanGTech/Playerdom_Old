@@ -23,9 +23,9 @@ namespace Playerdom.Shared.Services
 
             Random r = new Random(DateTime.Now.Millisecond);
 
-            for (int y = 0; y < Map.SIZE_Y; y++)
+            for (int y = 0; y < Map.SizeY; y++)
             {
-                for (int x = 0; x < Map.SIZE_X; x++)
+                for (int x = 0; x < Map.SizeX; x++)
                 {
                     int number = r.Next(0, 48);
 
@@ -51,8 +51,8 @@ namespace Playerdom.Shared.Services
 
             for (int path = 0; path < numPaths; path++)
             {
-                Point p0 = new Point(r.Next(0, (int)Map.SIZE_X - 1), r.Next(0, (int)Map.SIZE_Y - 1));
-                Point p1 = new Point(r.Next(0, (int)Map.SIZE_X - 1), r.Next(0, (int)Map.SIZE_Y - 1));
+                Point p0 = new Point(r.Next(0, (int)Map.SizeX - 1), r.Next(0, (int)Map.SizeY - 1));
+                Point p1 = new Point(r.Next(0, (int)Map.SizeX - 1), r.Next(0, (int)Map.SizeY - 1));
 
                 endPoints.Add(p0);
                 endPoints.Add(p1);
@@ -97,7 +97,7 @@ namespace Playerdom.Shared.Services
 
             for (int i = 0; i < numRandomEnemies; i++)
             {
-                m.gameObjects.TryAdd(Guid.NewGuid(), new Enemy(new Point(r.Next(0, (int)Map.SIZE_X - 1) * (int)Tile.SIZE_X, r.Next(0, (int)Map.SIZE_Y - 1) * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
+                m.gameObjects.TryAdd(Guid.NewGuid(), new Enemy(new Point(r.Next(0, (int)Map.SizeX - 1) * (int)Tile.SIZE_X, r.Next(0, (int)Map.SizeY - 1) * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
             }
 
             m.gameObjects.TryAdd(Guid.NewGuid(), new Townsman(new Point(12 * (int)Tile.SIZE_X, 12 * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y), money: (decimal)5.0));
@@ -115,8 +115,8 @@ namespace Playerdom.Shared.Services
             uint sizeX = (uint)r.Next(12, 16);
             uint sizeY = (uint)r.Next(12, 16);
 
-            if (position.X + sizeX > Map.SIZE_X - 1) position.X = (int)Map.SIZE_X - (int)sizeX - 1;
-            if (position.Y + sizeY > Map.SIZE_Y - 1) position.Y = (int)Map.SIZE_Y - (int)sizeY - 1;
+            if (position.X + sizeX > Map.SizeX - 1) position.X = (int)Map.SizeX - (int)sizeX - 1;
+            if (position.Y + sizeY > Map.SizeY - 1) position.Y = (int)Map.SizeY - (int)sizeY - 1;
 
             if (position.X < 0) position.X = 0;
             if (position.Y < 0) position.Y = 0;
@@ -221,8 +221,8 @@ namespace Playerdom.Shared.Services
             Point originalp1;
             Point originalp2;
 
-            const int mapMarginX = (int)(Map.SIZE_X / 4);
-            const int mapMarginY = (int)(Map.SIZE_Y / 4);
+            const int mapMarginX = (int)(Map.SizeX / 4);
+            const int mapMarginY = (int)(Map.SizeY / 4);
             const int thickness = 4;
 
 
@@ -232,20 +232,20 @@ namespace Playerdom.Shared.Services
                     originalp0 = new Point(0, 0);
                     break;
                 case 0:
-                    originalp0 = new Point(0 - mapMarginX, r.Next(0 - mapMarginY, (int)Map.SIZE_Y + mapMarginY - 1));
+                    originalp0 = new Point(0 - mapMarginX, r.Next(0 - mapMarginY, (int)Map.SizeY + mapMarginY - 1));
                     break;
                 case 1:
-                    originalp0 = new Point(r.Next(0 - mapMarginX, (int)Map.SIZE_X + mapMarginX - 1), 0 - mapMarginY);
+                    originalp0 = new Point(r.Next(0 - mapMarginX, (int)Map.SizeX + mapMarginX - 1), 0 - mapMarginY);
                     break;
                 case 2:
-                    originalp0 = new Point((int)Map.SIZE_X + mapMarginX - 1, r.Next(0 - mapMarginY, (int)Map.SIZE_Y + mapMarginY - 1));
+                    originalp0 = new Point((int)Map.SizeX + mapMarginX - 1, r.Next(0 - mapMarginY, (int)Map.SizeY + mapMarginY - 1));
                     break;
                 case 3:
-                    originalp0 = new Point(r.Next(0 - mapMarginX, (int)Map.SIZE_X + mapMarginX - 1), (int)Map.SIZE_Y + mapMarginY - 1);
+                    originalp0 = new Point(r.Next(0 - mapMarginX, (int)Map.SizeX + mapMarginX - 1), (int)Map.SizeY + mapMarginY - 1);
                     break;
             }
 
-            originalp1 = new Point(r.Next(0 - mapMarginX, (int)Map.SIZE_X + mapMarginX - 1), r.Next(0 - mapMarginY, (int)Map.SIZE_Y + mapMarginY - 1));
+            originalp1 = new Point(r.Next(0 - mapMarginX, (int)Map.SizeX + mapMarginX - 1), r.Next(0 - mapMarginY, (int)Map.SizeY + mapMarginY - 1));
 
 
             switch (r.Next(0, 3))
@@ -254,16 +254,16 @@ namespace Playerdom.Shared.Services
                     originalp2 = new Point(0, 0);
                     break;
                 case 0:
-                    originalp2 = new Point(0 - mapMarginX, r.Next(0 - mapMarginY, (int)Map.SIZE_Y + mapMarginY - 1));
+                    originalp2 = new Point(0 - mapMarginX, r.Next(0 - mapMarginY, (int)Map.SizeY + mapMarginY - 1));
                     break;
                 case 1:
-                    originalp2 = new Point(r.Next(0 - mapMarginX, (int)Map.SIZE_X + mapMarginX - 1), 0 - mapMarginY);
+                    originalp2 = new Point(r.Next(0 - mapMarginX, (int)Map.SizeX + mapMarginX - 1), 0 - mapMarginY);
                     break;
                 case 2:
-                    originalp2 = new Point((int)Map.SIZE_X + mapMarginX - 1, r.Next(0 - mapMarginY, (int)Map.SIZE_Y + mapMarginY - 1));
+                    originalp2 = new Point((int)Map.SizeX + mapMarginX - 1, r.Next(0 - mapMarginY, (int)Map.SizeY + mapMarginY - 1));
                     break;
                 case 3:
-                    originalp2 = new Point(r.Next(0 - mapMarginX, (int)Map.SIZE_X + mapMarginX - 1), (int)Map.SIZE_Y + mapMarginY - 1);
+                    originalp2 = new Point(r.Next(0 - mapMarginX, (int)Map.SizeX + mapMarginX - 1), (int)Map.SizeY + mapMarginY - 1);
                     break;
             }
 
@@ -304,7 +304,7 @@ namespace Playerdom.Shared.Services
 
                     do
                     {
-                        if (p0.X >= 0 && p0.Y >= 0 && p0.X < Map.SIZE_X && p0.Y < Map.SIZE_Y)
+                        if (p0.X >= 0 && p0.Y >= 0 && p0.X < Map.SizeX && p0.Y < Map.SizeY)
                         {
                             m.tiles[p0.X, p0.Y].typeID = 4;
                             m.tiles[p0.X, p0.Y].variantID = r.Next(0, 6) == 5 ? (byte)1 : (byte)0; ;
@@ -362,7 +362,7 @@ namespace Playerdom.Shared.Services
 
                     do
                     {
-                        if (p0.X >= 0 && p0.Y >= 0 && p0.X < Map.SIZE_X && p0.Y < Map.SIZE_Y)
+                        if (p0.X >= 0 && p0.Y >= 0 && p0.X < Map.SizeX && p0.Y < Map.SizeY)
                         {
                             m.tiles[p0.X, p0.Y].typeID = 4;
                             m.tiles[p0.X, p0.Y].variantID = r.Next(0, 6) == 5 ? (byte)1 : (byte)0;
@@ -430,7 +430,7 @@ namespace Playerdom.Shared.Services
                     }
                 }
 
-                if (position.X + width <= Map.SIZE_X - 1 && position.Y + height <= Map.SIZE_Y - 1)
+                if (position.X + width <= Map.SizeX - 1 && position.Y + height <= Map.SizeY - 1)
                 {
                     for (int y = 0; y < height; y++)
                     {
@@ -472,7 +472,7 @@ namespace Playerdom.Shared.Services
             var x = p0.X;
             var y = p0.Y;
 
-            if (x >= 0 && y >= 0 && x < Map.SIZE_X && y < Map.SIZE_Y)
+            if (x >= 0 && y >= 0 && x < Map.SizeX && y < Map.SizeY)
             {
                 m.tiles[x, y].typeID = newTypeID;
                 m.tiles[x, y].variantID = newvariantID;
@@ -494,7 +494,7 @@ namespace Playerdom.Shared.Services
                         y += yinc;
                     }
                     x += xinc;
-                    if (x < 0 || y < 0 || x >= Map.SIZE_X || y >= Map.SIZE_Y) continue;
+                    if (x < 0 || y < 0 || x >= Map.SizeX || y >= Map.SizeY) continue;
                     m.tiles[x, y].typeID = newTypeID;
                     m.tiles[x, y].variantID = newvariantID;
                 }
@@ -515,7 +515,7 @@ namespace Playerdom.Shared.Services
                         x += xinc;
                     }
                     y += yinc;
-                    if (x < 0 || y < 0 || x >= Map.SIZE_X || y >= Map.SIZE_Y) continue;
+                    if (x < 0 || y < 0 || x >= Map.SizeX || y >= Map.SizeY) continue;
                     m.tiles[x, y].typeID = newTypeID;
                     m.tiles[x, y].variantID = newvariantID;
                 }
