@@ -84,22 +84,22 @@ namespace Playerdom.Server.Core
                             : Clients.First(cl => cl.Value.FocusedObjectID == key).Value.InputState, key);
                 }
 
-                foreach (KeyValuePair<Guid, GameObject> g1 in level.gameObjects)
+                foreach (var (_, gameObject) in level.gameObjects)
                 {
-                    foreach (KeyValuePair<Guid, GameObject> g2 in level.gameObjects)
+                    foreach (var (_, value) in level.gameObjects)
                     {
-                        if (g1.Value == g2.Value) continue;
-                        if (!g1.Value.CheckCollision(g2.Value)) continue;
-                        g1.Value.HandleCollision(g2.Value, level);
-                        g2.Value.HandleCollision(g1.Value, level);
+                        if (gameObject == value) continue;
+                        if (!gameObject.CheckCollision(value)) continue;
+                        gameObject.HandleCollision(value, level);
+                        value.HandleCollision(gameObject, level);
                     }
-                    foreach (KeyValuePair<Guid, Entity> ent in level.gameEntities)
+                    foreach (var (_, value) in level.gameEntities)
                     {
-                        var (x, y) = g1.Value.BoundingBox.GetIntersectionDepth(ent.Value.BoundingBox);
+                        var (x, y) = gameObject.BoundingBox.GetIntersectionDepth(value.BoundingBox);
 
                         if (x != 0 && y != 0)
                         {
-                            g1.Value.HandleCollision(ent.Value, level);
+                            gameObject.HandleCollision(value, level);
                         }
                     }
                 }
@@ -117,7 +117,7 @@ namespace Playerdom.Server.Core
                         level.entitiesMarkedForDeletion.Add(key);
                     }
                 }
-                
+
                 foreach (Guid g in level.objectsMarkedForDeletion)
                 {
                     level.gameObjects.TryRemove(g, out GameObject o);
@@ -152,7 +152,7 @@ namespace Playerdom.Server.Core
                 level = LoadMap("World");
                 Console.WriteLine("{0:HH:mm}", DateTime.Now.ToString("HH:mm") + " Loaded Map");
             }
-            catch(Exception)
+            catch (Exception)
             {
                 Console.WriteLine("{0:HH:mm}", DateTime.Now.ToString("HH:mm") + " [ERROR] Loading Map");
                 level = MapService.CreateMap("World");
@@ -169,7 +169,7 @@ namespace Playerdom.Server.Core
                 {
                     SaveMap(level.Clone(), Clients);
                 }
-                catch(Exception exception)
+                catch (Exception exception)
                 {
                     Console.WriteLine(exception.GetType().ToString());
                     Console.WriteLine(exception.Message);
@@ -233,7 +233,7 @@ namespace Playerdom.Server.Core
         public static Map LoadMap(string name)
         {
             CerasSerializer serializer = new CerasSerializer(PlayerdomCerasSettings.Config);
-            Map m = new Map {levelName = name};
+            Map m = new Map { levelName = name };
 
             if (!Directory.Exists(m.levelName))
             {
