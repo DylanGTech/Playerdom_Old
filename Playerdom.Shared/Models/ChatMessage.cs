@@ -6,7 +6,7 @@ namespace Playerdom.Shared.Models
     public struct ChatMessage
     {
         public ulong senderID;
-        public readonly string message;
+        public string message;
         public DateTime timeSent;
         public Color textColor;
 
