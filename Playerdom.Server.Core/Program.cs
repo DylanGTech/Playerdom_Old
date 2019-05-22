@@ -6,30 +6,26 @@ using Playerdom.Shared;
 using Playerdom.Shared.Entities;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Timers;
 using System.Net.Sockets;
-using System.Reflection;
-using Ceras;            
-using System.Text;
+using Ceras;
 using System.Collections.Concurrent;
 using System.IO;
 using Playerdom.Shared.Models;
 
+//Wrong namespace
 namespace Playerdom.Server
 {
     public class Program
     {
 
-        public static ConcurrentQueue<ChatMessage> chatLog = new ConcurrentQueue<ChatMessage>();
+        public static readonly ConcurrentQueue<ChatMessage> chatLog = new ConcurrentQueue<ChatMessage>();
 
-        public static ConcurrentQueue<string> leavingPlayers = new ConcurrentQueue<string>();
+        public static readonly ConcurrentQueue<string> leavingPlayers = new ConcurrentQueue<string>();
         public static Map level = new Map();
-        public static ConcurrentDictionary<string, ServerClient> clients = new ConcurrentDictionary<string, ServerClient>();
+        public static readonly ConcurrentDictionary<string, ServerClient> clients = new ConcurrentDictionary<string, ServerClient>();
 
         static void AcceptClients()
         {
@@ -58,11 +54,9 @@ namespace Playerdom.Server
                         sc.Value.InitializePlayer();
                     }
 
-                    if (sc.Value.LastUpdate.AddSeconds(45) <= DateTime.Now)
-                    {
-                        if (!leavingPlayers.Contains(sc.Value.EndPointString))
-                            leavingPlayers.Enqueue(sc.Value.EndPointString);
-                    }
+                    if (sc.Value.LastUpdate.AddSeconds(45) > DateTime.Now) continue;
+                    if (!leavingPlayers.Contains(sc.Value.EndPointString))
+                        leavingPlayers.Enqueue(sc.Value.EndPointString);
 
                 }
 
@@ -70,13 +64,11 @@ namespace Playerdom.Server
                 {
                     clients.TryRemove(endpoint, out ServerClient sc);
 
-                    if (sc != null)
-                    {
-                        sc.Log("Player left");
-                        level.gameObjects.TryRemove(sc.FocusedObjectID, out GameObject player);
-                        Program.chatLog.Enqueue(new ChatMessage() { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Left ", textColor = Color.Orange });
-                        sc.Dispose();
-                    }
+                    if (sc == null) continue;
+                    sc.Log("Player left");
+                    level.gameObjects.TryRemove(sc.FocusedObjectID, out GameObject player);
+                    chatLog.Enqueue(new ChatMessage() { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Left ", textColor = Color.Orange });
+                    sc.Dispose();
                 }
 
 
@@ -86,31 +78,27 @@ namespace Playerdom.Server
                     ent.Value.Update(gameTime, level);
                 }
 
-                foreach (KeyValuePair<Guid, GameObject> g in level.gameObjects)
+                foreach (var (key, value) in level.gameObjects)
                 {
-                    if (!clients.Any(cl => cl.Value.FocusedObjectID == g.Key))
-                        g.Value.Update(gameTime, level, new KeyboardState(), g.Key);
-                    else g.Value.Update(gameTime, level, clients.First(cl => cl.Value.FocusedObjectID == g.Key).Value.InputState, g.Key);
+                    value.Update(gameTime, level,
+                        clients.All(cl => cl.Value.FocusedObjectID != key)
+                            ? new KeyboardState()
+                            : clients.First(cl => cl.Value.FocusedObjectID == key).Value.InputState, key);
                 }
                 foreach (KeyValuePair<Guid, GameObject> g1 in level.gameObjects)
                 {
                     foreach (KeyValuePair<Guid, GameObject> g2 in level.gameObjects)
                     {
-                        if (g1.Value != g2.Value)
-                        {
-                            if (g1.Value.CheckCollision(g2.Value))
-                            {
-                                g1.Value.HandleCollision(g2.Value, level);
-                                g2.Value.HandleCollision(g1.Value, level);
-
-                            }
-                        }
+                        if (g1.Value == g2.Value) continue;
+                        if (!g1.Value.CheckCollision(g2.Value)) continue;
+                        g1.Value.HandleCollision(g2.Value, level);
+                        g2.Value.HandleCollision(g1.Value, level);
                     }
                     foreach (KeyValuePair<Guid, Entity> ent in level.gameEntities)
                     {
-                        Vector2 depth = CollisionService.GetIntersectionDepth(g1.Value.BoundingBox, ent.Value.BoundingBox);
+                        var (x, y) = g1.Value.BoundingBox.GetIntersectionDepth(ent.Value.BoundingBox);
 
-                        if (depth.X != 0 && depth.Y != 0)
+                        if (x != 0 && y != 0)
                         {
                             g1.Value.HandleCollision(ent.Value, level);
                         }
@@ -130,7 +118,7 @@ namespace Playerdom.Server
                         level.entitiesMarkedForDeletion.Add(ent.Key);
                     }
                 }
-
+                
                 foreach (Guid g in level.objectsMarkedForDeletion)
                 {
                     level.gameObjects.TryRemove(g, out GameObject o);
@@ -156,7 +144,7 @@ namespace Playerdom.Server
             }
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Console.WriteLine("Playerdom Test Server started at {0:HH:mm:ss}", DateTime.Now);
             PlayerdomCerasSettings.Initialize();
@@ -201,8 +189,6 @@ namespace Playerdom.Server
         }
         public static void SaveMap(Map mapToSave, ConcurrentDictionary<string, ServerClient> clients)
         {
-
-
             //Clear player objects and data from world
             foreach (KeyValuePair<string, ServerClient> client in clients)
             {
@@ -231,7 +217,6 @@ namespace Playerdom.Server
             string worldPath = mapToSave.levelName + Path.DirectorySeparatorChar;
 
 
-
             using (FileStream stream = new FileStream(worldPath + "tiles.bin", FileMode.Create, FileAccess.Write, FileShare.Write))
             {
                 using (BinaryWriter bw = new BinaryWriter(stream))
@@ -254,8 +239,7 @@ namespace Playerdom.Server
         public static Map LoadMap(string name)
         {
             CerasSerializer serializer = new CerasSerializer(PlayerdomCerasSettings.config);
-            Map m = new Map();
-            m.levelName = name;
+            Map m = new Map {levelName = name};
 
 
             if (!Directory.Exists(m.levelName))

@@ -20,6 +20,7 @@ namespace Playerdom.Server
     public class ServerClient : IDisposable
     {
 
+        private string _nickName;
         private static ulong userIDCounter = 0; //TODO: Remove and replace with a system for users to identify themselves or log in 
 
         readonly TcpClient _tcpClient;
@@ -27,17 +28,14 @@ namespace Playerdom.Server
         readonly CerasSerializer _sendCeras;
         readonly CerasSerializer _receiveCeras;
 
-        public ulong? UserID { get; set; } = null;
+        public ulong? UserID { get; set; }
 
-        public string EndPointString
-        {
-            get { return _tcpClient.Client.RemoteEndPoint.ToString(); }
-        }
+        public string EndPointString => _tcpClient.Client.RemoteEndPoint.ToString();
 
         public DateTime LastUpdate { get; set; }
 
         public Guid FocusedObjectID { get; set; }
-        public bool HasMap { get; set; } = false;
+        public bool HasMap { get; set; }
         public bool NeedsAllInfo { get; set; } = true;
 
         public bool IsInitialized { get; set; } = false;
@@ -54,16 +52,14 @@ namespace Playerdom.Server
 
             _sendCeras = new CerasSerializer(PlayerdomCerasSettings.config);
             _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.config);
-
-
+            
             Log("Player Joined");
             //TODO: Parse dates into shorter HH:mm formats.
-            Program.chatLog.Enqueue(new ChatMessage() { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Joined ", timeSent = DateTime.Now, textColor = Color.Orange });
+            Program.chatLog.Enqueue(new ChatMessage { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Joined ", timeSent = DateTime.Now, textColor = Color.Orange });
 
             FocusedObjectID = Guid.NewGuid();
             InputState = new KeyboardState();
             LastUpdate = DateTime.Now;
-
         }
 
         public void Start()
@@ -85,7 +81,7 @@ namespace Playerdom.Server
                 {
                     // Keep receiving packets from the client and respond to them
                     // Eventually when the client disconnects we'll just get an exception and end the thread...
-                    while (Program.clients.ContainsKey(this.EndPointString))
+                    while (Program.clients.ContainsKey(EndPointString))
                     {
                         var obj = await _receiveCeras.ReadFromStream(_netStream);
                         HandleMessage(obj);
@@ -103,9 +99,10 @@ namespace Playerdom.Server
 
         void StartSendingMessages()
         {
+            // Async but no await?
             Task.Run(async () =>
             {
-                while (Program.clients.ContainsKey(this.EndPointString))
+                while (Program.clients.ContainsKey(EndPointString))
                 {
                     try
                     {
@@ -184,44 +181,51 @@ namespace Playerdom.Server
 
         void HandleMessage(object obj)
         {
-            if (obj is KeyboardState)
+            switch (obj)
             {
-                InputState = (KeyboardState)obj;
-
-            }
-            else if (obj is string)
-            {
-                if ((string)obj == "MapAffirmation")
+                case KeyboardState state:
+                    InputState = state;
+                    break;
+                case string s:
                 {
-                    HasMap = true;
+                    if (s == "MapAffirmation")
+                    {
+                        HasMap = true;
+                    }
+
+                    break;
                 }
-            }
-            else if(obj is KeyValuePair<string, string> pair)
-            {
-                string pairValue;
-                switch (pair.Key)
+
+                case KeyValuePair<string, string> pair:
                 {
-                    default:
-                        throw new Exception("Unknown object type");
-                    case "ChatMessage":
-                        if (UserID != null)
-                        {
+                    switch (pair.Key)
+                    {
+                        default:
+                            throw new Exception("Unknown object type");
+                        case "ChatMessage":
+                            if (UserID != null)
+                            {
 
-                            pairValue = pair.Value;
-                            if (pairValue.Length > 256)
-                                pairValue = pairValue.Substring(0, 256);
+                                var pairValue = pair.Value;
+                                if (pairValue.Length > 256)
+                                    pairValue = pairValue.Substring(0, 256);
 
 
 
-                            if (pairValue[0] == '/')
-                                ProcessCommand(pairValue);
-                            else
-                                Program.chatLog.Enqueue(new ChatMessage { message = string.Format("{0} [{1}]: {2}", DateTime.Now.ToString("HH:mm"), GetUsername(), pairValue), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.White });
-                        }
-                        break;
+                                if (pairValue[0] == '/')
+                                    ProcessCommand(pairValue);
+                                else
+                                    Program.chatLog.Enqueue(new ChatMessage { message = string.Format("{0} [{1}]: {2}", DateTime.Now.ToString("HH:mm"), GetUsername(), pairValue), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.White });
+                            }
+                            break;
+                    }
+
+                    break;
                 }
+
+                default:
+                    throw new Exception("Unknown object type");
             }
-            else throw new Exception("Unknown object type");
 
             LastUpdate = DateTime.Now;
         }
@@ -230,7 +234,7 @@ namespace Playerdom.Server
 
         public void Send(object obj)
         {
-            if(Program.clients.ContainsKey(this.EndPointString))
+            if(Program.clients.ContainsKey(EndPointString))
                 _sendCeras.WriteToStream(_netStream, obj);
 
         }
@@ -245,8 +249,8 @@ namespace Playerdom.Server
             if (!Directory.Exists(Environment.CurrentDirectory + "\\Logs"))
                 Directory.CreateDirectory(Environment.CurrentDirectory + "\\Logs");
 
-            FileStream logFile = System.IO.File.Create(logPath);
-            StreamWriter logWriter = new System.IO.StreamWriter(logFile);
+            FileStream logFile = File.Create(logPath);
+            StreamWriter logWriter = new StreamWriter(logFile);
             logWriter.WriteLine(e.GetType().ToString());
             logWriter.WriteLine(e.Message);
             logWriter.WriteLine(e.StackTrace);
@@ -254,10 +258,6 @@ namespace Playerdom.Server
             logFile.Close();
             logWriter.Dispose();
         }
-
-
-
-        private string nickName = null;
 
         public string GetUsername()
         {
@@ -267,9 +267,9 @@ namespace Playerdom.Server
                 throw new NullReferenceException("User doesn't have an ID");
 
 
-            if (nickName == null)
+            if (_nickName == null)
                 return "Player " + UserID.Value;
-            else return nickName;
+            return _nickName;
         }
 
         public void Dispose()
@@ -279,7 +279,6 @@ namespace Playerdom.Server
         }
 
 
-
         private void ProcessCommand(string command)
         {
             command = command.Substring(1);
@@ -287,25 +286,16 @@ namespace Playerdom.Server
             string[] args = command.Split(' ');
 
 
-            if (args[0] == "nick" && args.Length == 2 && args[1].Length <= 48)
-            {
-
-                if(Program.clients.Count(c => c.Value.nickName == args[1]) == 0)
-                {
-                    string oldName = GetUsername();
+            if (args[0] != "nick" || args.Length != 2 || args[1].Length > 48) return;
+            if (Program.clients.Count(c => c.Value._nickName == args[1]) != 0) return;
+            string oldName = GetUsername();
 
 
-                    nickName = args[1];
+            _nickName = args[1];
 
-                    try
-                    {
-                        Program.level.gameObjects[this.FocusedObjectID].SetDisplayName(args[1]);
+            Program.level.gameObjects[FocusedObjectID].SetDisplayName(args[1]);
 
-                        Program.chatLog.Enqueue(new ChatMessage { message = string.Format("{0} [Server]: {1} is now known as {2}", DateTime.Now.ToString("HH:mm"), oldName, nickName), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.Yellow });
-                    }
-                    finally { }
-                }
-            }
+            Program.chatLog.Enqueue(new ChatMessage { message = string.Format("{0} [Server]: {1} is now known as {2}", DateTime.Now.ToString("HH:mm"), oldName, _nickName), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.Yellow });
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Playerdom.Shared.Objects
 {
     public class Player : GameObject
     {
-        private DateTime bulletTimer;
+        private DateTime _bulletTimer;
         private DateTime dropTimer;
 
 
@@ -28,14 +28,13 @@ namespace Playerdom.Shared.Objects
             Level = level;
             XP = xp;
             Speed = speed;
-            if (health == 0) Health = MaxHealth;
-            else Health = health; Type = type;
+            Health = health == 0 ? MaxHealth : health; Type = type;
             IsHalted = isHalted;
             DisplayName = displayName;
             FacingDirectionX = facingDirectionX;
             FacingDirectionY = facingDirectionY;
             DialogText = dialogText;
-            bulletTimer = DateTime.Now;
+            _bulletTimer = DateTime.Now;
             dropTimer = DateTime.Now;
             IsTalking = isTalking;
             ObjectTalkingTo = objectTalkingTo;
@@ -47,7 +46,7 @@ namespace Playerdom.Shared.Objects
             if (o.GetType() != typeof(Player))
                 throw new Exception("Type to update must be the same type as the original");
 
-            bulletTimer = (o as Player).bulletTimer;
+            _bulletTimer = ((Player) o)._bulletTimer;
 
 
             base.UpdateStats(o);
@@ -106,8 +105,8 @@ namespace Playerdom.Shared.Objects
             {
                 if (ObjectTalkingTo != null && map.gameObjects.TryGetValue(ObjectTalkingTo.Value, out GameObject ott))
                 {
-                    Vector2 d = this.Distance(ott);
-                    if (Math.Abs(d.X) <= Tile.SIZE_X * 2 || Math.Abs(d.Y) <= Tile.SIZE_Y * 2)
+                    var (x, y) = Distance(ott);
+                    if (Math.Abs(x) <= Tile.SIZE_X * 2 || Math.Abs(y) <= Tile.SIZE_Y * 2)
                     {
 
                     }
@@ -120,72 +119,60 @@ namespace Playerdom.Shared.Objects
                 else ObjectTalkingTo = null;
             }
 
-
-
-
-
-            if (ks.IsKeyDown(Keys.F) && DateTime.Now >= bulletTimer)
+            if (ks.IsKeyDown(Keys.F) && DateTime.Now >= _bulletTimer)
             {
                 if(!(FacingDirectionX == DirectionX.Center && FacingDirectionY == DirectionY.Center))
                 {
-                    Vector2 tragectory = new Vector2(0);
+                    Vector2 trajectory = new Vector2(0);
                     Point position = new Point(Position.X + (int)Size.X / 2 - 16, Position.Y + (int)Size.Y / 2 - 16);
                     switch (FacingDirectionX)
                     {
                         case DirectionX.Left:
-                            tragectory.X -= 16;
+                            trajectory.X -= 16;
                             position.X -= (int)Size.X;
                             break;
                         case DirectionX.Right:
-                            tragectory.X += 16;
+                            trajectory.X += 16;
                             position.X += (int)Size.X;
                             break;
                     }
                     switch (FacingDirectionY)
                     {
                         case DirectionY.Up:
-                            tragectory.Y -= 16;
+                            trajectory.Y -= 16;
                             position.Y -= (int)Size.Y;
                             break;
                         case DirectionY.Down:
-                            tragectory.Y += 16;
+                            trajectory.Y += 16;
                             position.Y += (int)Size.Y;
                             break;
                     }
-
-
-                    map.gameEntities.TryAdd(Guid.NewGuid(), new Bullet(position, new Vector2(32, 32), tragectory, this));
-
-                    bulletTimer = DateTime.Now.AddSeconds(0.85);
+                    
+                    map.gameEntities.TryAdd(Guid.NewGuid(), new Bullet(position, new Vector2(32, 32), trajectory, this));
+                    _bulletTimer = DateTime.Now.AddSeconds(0.85);
                 }
             }
-
-
-
+            
             if(ks.IsKeyDown(Keys.T) && !IsTalking)
             {
                 bool talkingToObject = false;
                 foreach(KeyValuePair<Guid, GameObject> go1 in map.gameObjects)
                 {
-                    if(go1.Key != objectGuid && go1.Value.IsTalking == false && (go1.Value.ObjectTalkingTo == null || go1.Value.ObjectTalkingTo == objectGuid))
-                    {
-                        Vector2 d = Distance(go1.Value);
-                        if (Math.Abs(d.X) <= Tile.SIZE_X * 2 && Math.Abs(d.Y) <= Tile.SIZE_Y * 2)
-                        {
-                            talkingToObject = true;
-                            go1.Value.StartConversation(new KeyValuePair<Guid, GameObject>(objectGuid, this), go1.Key);
-                        }
-                    }
+                    if (go1.Key == objectGuid || go1.Value.IsTalking ||
+                        go1.Value.ObjectTalkingTo != null && go1.Value.ObjectTalkingTo != objectGuid) continue;
+                    Vector2 d = Distance(go1.Value);
+                    if (!(Math.Abs(d.X) <= Tile.SIZE_X * 2) || !(Math.Abs(d.Y) <= Tile.SIZE_Y * 2)) continue;
+                    talkingToObject = true;
+                    go1.Value.StartConversation(new KeyValuePair<Guid, GameObject>(objectGuid, this), go1.Key);
                 }
                 if(!talkingToObject)
                 {
                     ObjectTalkingTo = null;
                     Random r = new Random(DateTime.Now.Millisecond);
-                    string text = "";
+                    string text;
                     switch (r.Next(0, 8))
                     {
                         default:
-                        case 0:
                             text = "Dylan would love it if I were to give him ideas.";
                             break;
                         case 1:

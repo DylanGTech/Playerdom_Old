@@ -18,7 +18,7 @@ namespace Playerdom.Shared.Entities
         public GameObject Sender
         {
             get; private set;
-        } = null;
+        }
 
         public Vector2 Velocity
         {

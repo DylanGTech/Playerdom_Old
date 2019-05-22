@@ -15,7 +15,7 @@ namespace Playerdom.Shared.Entities
         public GameObject Dropper
         {
             get; private set;
-        } = null;
+        }
 
         public decimal MoneyContained
         {
