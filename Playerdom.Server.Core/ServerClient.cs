@@ -171,44 +171,40 @@ namespace Playerdom.Server.Core
                     InputState = state;
                     break;
                 case string s:
+                    if (s == "MapAffirmation")
                     {
-                        if (s == "MapAffirmation")
-                        {
-                            HasMap = true;
-                        }
-
-                        break;
+                        HasMap = true;
                     }
 
+                    break;
                 case KeyValuePair<string, string> pair:
+                    switch (pair.Key)
                     {
-                        switch (pair.Key)
-                        {
-                            default:
-                                throw new Exception("Unknown object type");
-                            case "ChatMessage":
-                                if (UserID != null)
-                                {
+                        default:
+                            throw new Exception("Unknown object type");
+                        case "ChatMessage":
+                            if (UserID != null)
+                            {
 
-                                    var pairValue = pair.Value;
-                                    if (pairValue.Length > 256)
-                                        pairValue = pairValue.Substring(0, 256);
+                                var pairValue = pair.Value;
+                                if (pairValue.Length > 256)
+                                    pairValue = pairValue.Substring(0, 256);
 
-                                    if (pairValue[0] == '/')
-                                        ProcessCommand(pairValue);
-                                    else if (UserID != null)
-                                        Program.ChatLog.Enqueue(new ChatMessage
-                                        {
-                                            message =
-                                                $"{DateTime.Now:HH:mm} [{GetUsername()}]: {pairValue}",
-                                            senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.White
-                                        });
-                                }
-                                break;
-                        }
-                        break;
+                                if (pairValue[0] == '/')
+                                    ProcessCommand(pairValue);
+                                else
+                                    Program.ChatLog.Enqueue(new ChatMessage
+                                    {
+                                        message =
+                                            $"{DateTime.Now:HH:mm} [{GetUsername()}]: {pairValue}",
+                                        senderID = UserID.Value,
+                                        timeSent = DateTime.Now,
+                                        textColor = Color.White
+                                    });
+                            }
+                            break;
                     }
-
+                    break;
                 default:
                     throw new Exception("Unknown object type");
             }

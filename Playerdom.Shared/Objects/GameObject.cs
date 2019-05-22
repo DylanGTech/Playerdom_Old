@@ -32,12 +32,7 @@ namespace Playerdom.Shared.Objects
             get; set;
         }
 
-        private Point _position;
-        public Point Position
-        {
-            get => _position;
-            protected set => _position = value;
-        }
+        public Point Position { get; protected set; }
 
         public Texture2D ActiveTexture
         {
@@ -120,9 +115,9 @@ namespace Playerdom.Shared.Objects
         //{
         //}
 
-        public virtual void DrawTag(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset, RenderTarget2D target)
+        public virtual void DrawTag(SpriteBatch spriteBatch, Vector2 centerOffset, RenderTarget2D target)
         {
-            spriteBatch.DrawString(font, DisplayName + " [Lvl " + Level + "]", new Microsoft.Xna.Framework.Vector2((target.Width / 2) - (Size.X / 2) - centerOffset.X + (Size.X - font.MeasureString(DisplayName + " [Lvl " + Level + "]").X) / 2,
+            spriteBatch.DrawString(font, DisplayName + " [Lvl " + Level + "]", new Vector2((target.Width / 2) - (Size.X / 2) - centerOffset.X + (Size.X - font.MeasureString(DisplayName + " [Lvl " + Level + "]").X) / 2,
                 (target.Height / 2) - (Size.Y / 2) - centerOffset.Y - font.MeasureString(DisplayName + " [Lvl " + Level + "]").Y - 16), Color.White);
 
             spriteBatch.Draw(rect, new Rectangle((int)((target.Width / 2) - (Size.X / 2) - centerOffset.X), (int)((target.Height / 2) - (Size.Y / 2) - centerOffset.Y) - 16, (int)Size.X, 20), Color.White);
@@ -132,13 +127,13 @@ namespace Playerdom.Shared.Objects
 
         }
 
-        public virtual void DrawSprite(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset, RenderTarget2D target)
+        public virtual void DrawSprite(SpriteBatch spriteBatch, Vector2 centerOffset, RenderTarget2D target)
         {
             if (CanBeHurt || DateTime.Now.Ticks % 2 == 1)
                 spriteBatch.Draw(ActiveTexture, new Rectangle((int)((target.Width / 2) - (Size.X / 2) - centerOffset.X), (int)((target.Height / 2) - (Size.Y / 2) - centerOffset.Y), (int)Size.X, (int)Size.Y), Color.White);
         }
 
-        public virtual void DrawDialog(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset, RenderTarget2D target)
+        public virtual void DrawDialog(SpriteBatch spriteBatch, Vector2 centerOffset, RenderTarget2D target)
         {
             if (!IsTalking) return;
             spriteBatch.Draw(dialogTexture, new Rectangle((int)((target.Width / 2) - (Size.X / 2) - centerOffset.X + (Size.X - font.MeasureString(DialogText).X) / 2) - 6,
@@ -160,9 +155,10 @@ namespace Playerdom.Shared.Objects
 
             if (!IsHalted)
             {
-                CollisionService.MoveWithTileCollision(this, map, new Microsoft.Xna.Framework.Vector2((float)xOffset, (float)yOffset));
+                CollisionService.MoveWithTileCollision(this, map, new Vector2((float)xOffset, (float)yOffset));
             }
         }
+
         public virtual void ChangePosition(int xOffset, int yOffset)
         {
             Point newPosition = new Point(Position.X + xOffset, Position.Y + yOffset);
@@ -235,7 +231,7 @@ namespace Playerdom.Shared.Objects
             return new Vector2((this.Position.X + Size.X / 2) - (otherObject.Position.X + otherObject.Size.X / 2), (this.Position.Y + Size.Y / 2) - (otherObject.Position.Y + otherObject.Size.Y / 2));
         }
 
-        public Microsoft.Xna.Framework.Vector2 Distance(Entity entity)
+        public Vector2 Distance(Entity entity)
         {
             return new Vector2((this.Position.X + Size.X / 2) - (entity.Position.X + entity.Size.X / 2), (this.Position.Y + Size.Y / 2) - (entity.Position.Y + entity.Size.Y / 2));
         }

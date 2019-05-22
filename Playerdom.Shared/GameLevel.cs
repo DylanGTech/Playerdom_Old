@@ -472,14 +472,14 @@ namespace Playerdom.Shared
                 if (o.Value.ActiveTexture == null) o.Value.LoadContent(Content, GraphicsDevice);
                 if (object.ReferenceEquals(o.Value, focusedObject.Value))
                 {
-                    o.Value.DrawSprite(spriteBatch, GraphicsDevice, new Vector2(0, 0), target);
+                    o.Value.DrawSprite(spriteBatch, new Vector2(0, 0), target);
                 }
                 else
                 {
                     Vector2 d = focusedObject.Value.Distance(o.Value);
 
                     if (Math.Abs((int)d.Length()) < 24 * Tile.SIZE_X)
-                        o.Value.DrawSprite(spriteBatch, GraphicsDevice, d, target);
+                        o.Value.DrawSprite(spriteBatch, d, target);
                 }
 
             }
@@ -492,14 +492,14 @@ namespace Playerdom.Shared
                 if (o.Value.ActiveTexture == null) o.Value.LoadContent(Content, GraphicsDevice);
                 if (object.ReferenceEquals(o.Value, focusedObject.Value))
                 {
-                    o.Value.DrawTag(spriteBatch, GraphicsDevice, new Vector2(0, 0), target);
+                    o.Value.DrawTag(spriteBatch, new Vector2(0, 0), target);
                 }
                 else
                 {
                     Vector2 d = focusedObject.Value.Distance(o.Value);
 
                     if (Math.Abs((int)d.Length()) < 24 * Tile.SIZE_X)
-                        o.Value.DrawTag(spriteBatch, GraphicsDevice, d, target);
+                        o.Value.DrawTag(spriteBatch, d, target);
                 }
 
             }
@@ -513,14 +513,14 @@ namespace Playerdom.Shared
                 if (o.Value.ActiveTexture == null) o.Value.LoadContent(Content, GraphicsDevice);
                 if (object.ReferenceEquals(o.Value, focusedObject.Value))
                 {
-                    o.Value.DrawDialog(spriteBatch, GraphicsDevice, new Vector2(0, 0), target);
+                    o.Value.DrawDialog(spriteBatch, new Vector2(0, 0), target);
                 }
                 else
                 {
                     Vector2 d = focusedObject.Value.Distance(o.Value);
 
                     if (Math.Abs((int)d.Length()) < 24 * Tile.SIZE_X)
-                        o.Value.DrawDialog(spriteBatch, GraphicsDevice, d, target);
+                        o.Value.DrawDialog(spriteBatch, d, target);
                 }
 
             }

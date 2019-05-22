@@ -20,7 +20,6 @@ namespace Playerdom.Shared
 
         public static void Initialize()
         {
-            
             Config.KnownTypes.Add(typeof(GameObject));
             Config.KnownTypes.Add(typeof(Player));
             Config.KnownTypes.Add(typeof(Enemy));

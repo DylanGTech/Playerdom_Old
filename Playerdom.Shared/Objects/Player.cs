@@ -64,11 +64,6 @@ namespace Playerdom.Shared.Objects
             base.HandleCollision(otherObject, m);
         }
 
-        public override void HandleCollision(Entity entity, Map m)
-        {
-            base.HandleCollision(entity, m);
-        }
-
         public override void Update(GameTime time, Map map, KeyboardState ks, Guid objectGuid)
         {
             var (f, f1) = new Vector2();
