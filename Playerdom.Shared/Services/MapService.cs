@@ -2,14 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
-using Playerdom.Shared.Entities;
-using System.Collections.Concurrent;
-using Ceras;
 using Playerdom.Shared.Models;
 
 #if WINDOWS_UAP
@@ -25,8 +19,7 @@ namespace Playerdom.Shared.Services
     {
         public static Map CreateMap(string mapName)
         {
-            Map m = new Map();
-            m.levelName = mapName;
+            Map m = new Map {levelName = mapName};
 
             Random r = new Random(DateTime.Now.Millisecond);
 
@@ -34,7 +27,7 @@ namespace Playerdom.Shared.Services
 
             for (int y = 0; y < Map.SIZE_Y; y++)
             {
-                for (int x = 0; x < Map.SIZE_X; x++)
+                for (int x = 0; x < Map.SizeX; x++)
                 {
                     int number = r.Next(0, 48);
 
@@ -46,10 +39,7 @@ namespace Playerdom.Shared.Services
                     else
                     {
                         m.tiles[x, y].typeID = 1;
-
-
-                        if (number > 40) m.tiles[x, y].variantID = 1;
-                        else m.tiles[x, y].variantID = 0;
+                        m.tiles[x, y].variantID = number > 40 ? (byte) 1 : (byte) 0;
                     }
                 }
             }
@@ -63,21 +53,17 @@ namespace Playerdom.Shared.Services
 
             for (int path = 0; path < numPaths; path++)
             {
-                Point p0 = new Point(r.Next(0, (int)Map.SIZE_X - 1), r.Next(0, (int)Map.SIZE_Y - 1));
-                Point p1 = new Point(r.Next(0, (int)Map.SIZE_X - 1), r.Next(0, (int)Map.SIZE_Y - 1));
+                Point p0 = new Point(r.Next(0, (int)Map.SizeX - 1), r.Next(0, (int)Map.SizeY - 1));
+                Point p1 = new Point(r.Next(0, (int)Map.SizeX - 1), r.Next(0, (int)Map.SizeY - 1));
 
                 endPoints.Add(p0);
                 endPoints.Add(p1);
 
-
-
-                int thickness = 4;
-                double wy = 0;
-                double wx = 0;
+                const int thickness = 4;
 
                 if (p1.X != p0.X && (p1.Y - p0.Y) / (p1.X - p0.X) < 1)
                 {
-                    wy = (thickness - 1) * Math.Sqrt(Math.Pow((p1.X - p0.X), 2) + Math.Pow((p1.Y - p0.Y), 2)) / (2 * Math.Abs(p1.X - p0.X));
+                    var wy = (thickness - 1) * Math.Sqrt(Math.Pow((p1.X - p0.X), 2) + Math.Pow((p1.Y - p0.Y), 2)) / (2 * Math.Abs(p1.X - p0.X));
 
                     for (int i = 0; i < wy; i++)
                     {
@@ -87,7 +73,7 @@ namespace Playerdom.Shared.Services
                 }
                 else if (p1.Y != p0.Y && (p1.X - p0.X) / (p1.Y - p0.Y) < 1)
                 {
-                    wx = (thickness - 1) * Math.Sqrt(Math.Pow((p1.X - p0.X), 2) + Math.Pow((p1.Y - p0.Y), 2)) / (2 * Math.Abs(p1.Y - p0.Y));
+                    var wx = (thickness - 1) * Math.Sqrt(Math.Pow((p1.X - p0.X), 2) + Math.Pow((p1.Y - p0.Y), 2)) / (2 * Math.Abs(p1.Y - p0.Y));
 
                     for (int i = 0; i < wx; i++)
                     {
@@ -99,23 +85,21 @@ namespace Playerdom.Shared.Services
 
             for (int i = 0; i < endPoints.Count; i++)
             {
-                if (i % 2 == 1)
-                {
-                    int pathOffsetX = r.Next(-5, 5);
-                    int pathOffsetY = r.Next(-5, 5);
+                if (i % 2 != 1) continue;
+                int pathOffsetX = r.Next(-5, 5);
+                int pathOffsetY = r.Next(-5, 5);
 
-                    GenerateRandomHouse(m, new Point(endPoints[i].X + pathOffsetX, endPoints[i].X + pathOffsetY), r);
-                }
+                GenerateRandomHouse(m, new Point(endPoints[i].X + pathOffsetX, endPoints[i].X + pathOffsetY), r);
             }
 
             AddStructure(m, new Point(16, 16), "structure.pldms");
 
 
-            int numRandomEnemies = 96;
+            const int numRandomEnemies = 96;
 
             for (int i = 0; i < numRandomEnemies; i++)
             {
-                m.gameObjects.TryAdd(Guid.NewGuid(), new Enemy(new Point(r.Next(0, (int)Map.SIZE_X - 1) * (int)Tile.SIZE_X, r.Next(0, (int)Map.SIZE_Y - 1) * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
+                m.gameObjects.TryAdd(Guid.NewGuid(), new Enemy(new Point(r.Next(0, (int)Map.SizeX - 1) * (int)Tile.SIZE_X, r.Next(0, (int)Map.SizeY - 1) * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
             }
 
             m.gameObjects.TryAdd(Guid.NewGuid(), new Townsman(new Point(12 * (int)Tile.SIZE_X, 12 * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y), money: (decimal)5.0));
@@ -133,16 +117,14 @@ namespace Playerdom.Shared.Services
             uint sizeX = (uint)r.Next(12, 16);
             uint sizeY = (uint)r.Next(12, 16);
 
-            if (position.X + sizeX > Map.SIZE_X - 1) position.X = (int)Map.SIZE_X - (int)sizeX - 1;
-            if (position.Y + sizeY > Map.SIZE_Y - 1) position.Y = (int)Map.SIZE_Y - (int)sizeY - 1;
+            if (position.X + sizeX > Map.SizeX - 1) position.X = (int)Map.SizeX - (int)sizeX - 1;
+            if (position.Y + sizeY > Map.SizeY - 1) position.Y = (int)Map.SizeY - (int)sizeY - 1;
 
             if (position.X < 0) position.X = 0;
             if (position.Y < 0) position.Y = 0;
 
-
             int numDoors = r.Next(1, 3);
             int numRemovedBlocks = 0;
-
 
             for (int y = 0; y < sizeY; y++)
             {
@@ -150,7 +132,7 @@ namespace Playerdom.Shared.Services
                 {
                     if (m.tiles[position.X + x, position.Y + y].typeID == 4)
                         return;
-                    else if (m.tiles[position.X + x, position.Y + y].typeID == 3
+                    if (m.tiles[position.X + x, position.Y + y].typeID == 3
                         || m.tiles[position.X + x, position.Y + y].typeID == 2)
                     {
                         numRemovedBlocks++;
@@ -241,9 +223,9 @@ namespace Playerdom.Shared.Services
             Point originalp1;
             Point originalp2;
 
-            int mapMarginX = (int)(Map.SIZE_X / 4);
-            int mapMarginY = (int)(Map.SIZE_Y / 4);
-            int thickness = 4;
+            const int mapMarginX = (int)(Map.SizeX / 4);
+            const int mapMarginY = (int)(Map.SizeY / 4);
+            const int thickness = 4;
 
 
             switch (r.Next(0, 3))
@@ -252,20 +234,20 @@ namespace Playerdom.Shared.Services
                     originalp0 = new Point(0, 0);
                     break;
                 case 0:
-                    originalp0 = new Point(0 - mapMarginX, r.Next(0 - mapMarginY, (int)Map.SIZE_Y + mapMarginY - 1));
+                    originalp0 = new Point(0 - mapMarginX, r.Next(0 - mapMarginY, (int)Map.SizeY + mapMarginY - 1));
                     break;
                 case 1:
-                    originalp0 = new Point(r.Next(0 - mapMarginX, (int)Map.SIZE_X + mapMarginX - 1), 0 - mapMarginY);
+                    originalp0 = new Point(r.Next(0 - mapMarginX, (int)Map.SizeX + mapMarginX - 1), 0 - mapMarginY);
                     break;
                 case 2:
-                    originalp0 = new Point((int)Map.SIZE_X + mapMarginX - 1, r.Next(0 - mapMarginY, (int)Map.SIZE_Y + mapMarginY - 1));
+                    originalp0 = new Point((int)Map.SizeX + mapMarginX - 1, r.Next(0 - mapMarginY, (int)Map.SizeY + mapMarginY - 1));
                     break;
                 case 3:
-                    originalp0 = new Point(r.Next(0 - mapMarginX, (int)Map.SIZE_X + mapMarginX - 1), (int)Map.SIZE_Y + mapMarginY - 1);
+                    originalp0 = new Point(r.Next(0 - mapMarginX, (int)Map.SizeX + mapMarginX - 1), (int)Map.SizeY + mapMarginY - 1);
                     break;
             }
 
-            originalp1 = new Point(r.Next(0 - mapMarginX, (int)Map.SIZE_X + mapMarginX - 1), r.Next(0 - mapMarginY, (int)Map.SIZE_Y + mapMarginY - 1));
+            originalp1 = new Point(r.Next(0 - mapMarginX, (int)Map.SizeX + mapMarginX - 1), r.Next(0 - mapMarginY, (int)Map.SizeY + mapMarginY - 1));
 
 
             switch (r.Next(0, 3))
@@ -274,16 +256,16 @@ namespace Playerdom.Shared.Services
                     originalp2 = new Point(0, 0);
                     break;
                 case 0:
-                    originalp2 = new Point(0 - mapMarginX, r.Next(0 - mapMarginY, (int)Map.SIZE_Y + mapMarginY - 1));
+                    originalp2 = new Point(0 - mapMarginX, r.Next(0 - mapMarginY, (int)Map.SizeY + mapMarginY - 1));
                     break;
                 case 1:
-                    originalp2 = new Point(r.Next(0 - mapMarginX, (int)Map.SIZE_X + mapMarginX - 1), 0 - mapMarginY);
+                    originalp2 = new Point(r.Next(0 - mapMarginX, (int)Map.SizeX + mapMarginX - 1), 0 - mapMarginY);
                     break;
                 case 2:
-                    originalp2 = new Point((int)Map.SIZE_X + mapMarginX - 1, r.Next(0 - mapMarginY, (int)Map.SIZE_Y + mapMarginY - 1));
+                    originalp2 = new Point((int)Map.SizeX + mapMarginX - 1, r.Next(0 - mapMarginY, (int)Map.SizeY + mapMarginY - 1));
                     break;
                 case 3:
-                    originalp2 = new Point(r.Next(0 - mapMarginX, (int)Map.SIZE_X + mapMarginX - 1), (int)Map.SIZE_Y + mapMarginY - 1);
+                    originalp2 = new Point(r.Next(0 - mapMarginX, (int)Map.SizeX + mapMarginX - 1), (int)Map.SizeY + mapMarginY - 1);
                     break;
             }
 
@@ -297,10 +279,9 @@ namespace Playerdom.Shared.Services
                 p1.Y += i;
                 p2.Y += i;
 
-
                 int sx = p2.X - p1.X, sy = p2.Y - p1.Y;
-                long xx = p0.X - p1.X, yy = p0.Y - p1.Y, xy;
-                double dx, dy, err, cur = xx * sy - yy * sx;
+                long xx = p0.X - p1.X, yy = p0.Y - p1.Y;
+                double cur = xx * sy - yy * sx;
 
                 if (!(xx * sx <= 0 && yy * sy <= 0)) return;
 
@@ -313,19 +294,19 @@ namespace Playerdom.Shared.Services
                 {
                     xx += sx; xx *= sx = p0.X < p2.X ? 1 : -1;
                     yy += sy; yy *= sy = p0.Y < p2.Y ? 1 : -1;
-                    xy = 2 * xx * yy; xx *= xx; yy *= yy;
+                    var xy = 2 * xx * yy; xx *= xx; yy *= yy;
 
                     if (cur * sx * sy < 0)
                     {
                         xx = -xx; yy = -yy; xy = -xy; cur = -cur;
                     }
-                    dx = 4.0 * sy * cur * (p1.X - p0.X) + xx - xy;
-                    dy = 4.0 * sx * cur * (p0.Y - p1.Y) + yy - xy;
-                    xx += xx; yy += yy; err = dx + dy + xy;
+                    var dx = 4.0 * sy * cur * (p1.X - p0.X) + xx - xy;
+                    var dy = 4.0 * sx * cur * (p0.Y - p1.Y) + yy - xy;
+                    xx += xx; yy += yy; var err = dx + dy + xy;
 
                     do
                     {
-                        if (p0.X >= 0 && p0.Y >= 0 && p0.X < Map.SIZE_X && p0.Y < Map.SIZE_Y)
+                        if (p0.X >= 0 && p0.Y >= 0 && p0.X < Map.SizeX && p0.Y < Map.SizeY)
                         {
                             m.tiles[p0.X, p0.Y].typeID = 4;
                             m.tiles[p0.X, p0.Y].variantID = r.Next(0, 6) == 5 ? (byte)1 : (byte)0; ;
@@ -334,7 +315,9 @@ namespace Playerdom.Shared.Services
                         if (p0.X == p2.X && p0.Y == p2.Y) break;
                         p1.Y = 2 * err < dx ? 1 : 0;
                         if (2 * err > dy) { p0.X += sx; dx -= xy; err += dy += yy; }
-                        if (p1.Y == 1) { p0.Y += sy; dy -= xy; err += dx += xx; }
+
+                        if (p1.Y != 1) continue;
+                        p0.Y += sy; dy -= xy; err += dx += xx;
                     } while (dy < dx);
                 }
                 else
@@ -355,8 +338,8 @@ namespace Playerdom.Shared.Services
 
 
                 int sx = p2.X - p1.X, sy = p2.Y - p1.Y;
-                long xx = p0.X - p1.X, yy = p0.Y - p1.Y, xy;
-                double dx, dy, err, cur = xx * sy - yy * sx;
+                long xx = p0.X - p1.X, yy = p0.Y - p1.Y;
+                double cur = xx * sy - yy * sx;
 
                 if (!(xx * sx <= 0 && yy * sy <= 0)) return;
 
@@ -369,19 +352,19 @@ namespace Playerdom.Shared.Services
                 {
                     xx += sx; xx *= sx = p0.X < p2.X ? 1 : -1;
                     yy += sy; yy *= sy = p0.Y < p2.Y ? 1 : -1;
-                    xy = 2 * xx * yy; xx *= xx; yy *= yy;
+                    var xy = 2 * xx * yy; xx *= xx; yy *= yy;
 
                     if (cur * sx * sy < 0)
                     {
                         xx = -xx; yy = -yy; xy = -xy; cur = -cur;
                     }
-                    dx = 4.0 * sy * cur * (p1.X - p0.X) + xx - xy;
-                    dy = 4.0 * sx * cur * (p0.Y - p1.Y) + yy - xy;
-                    xx += xx; yy += yy; err = dx + dy + xy;
+                    var dx = 4.0 * sy * cur * (p1.X - p0.X) + xx - xy;
+                    var dy = 4.0 * sx * cur * (p0.Y - p1.Y) + yy - xy;
+                    xx += xx; yy += yy; var err = dx + dy + xy;
 
                     do
                     {
-                        if (p0.X >= 0 && p0.Y >= 0 && p0.X < Map.SIZE_X && p0.Y < Map.SIZE_Y)
+                        if (p0.X >= 0 && p0.Y >= 0 && p0.X < Map.SizeX && p0.Y < Map.SizeY)
                         {
                             m.tiles[p0.X, p0.Y].typeID = 4;
                             m.tiles[p0.X, p0.Y].variantID = r.Next(0, 6) == 5 ? (byte)1 : (byte)0;
@@ -390,7 +373,9 @@ namespace Playerdom.Shared.Services
                         if (p0.X == p2.X && p0.Y == p2.Y) break;
                         p1.Y = 2 * err < dx ? 1 : 0;
                         if (2 * err > dy) { p0.X += sx; dx -= xy; err += dy += yy; }
-                        if (p1.Y == 1) { p0.Y += sy; dy -= xy; err += dx += xx; }
+
+                        if (p1.Y != 1) continue;
+                        p0.Y += sy; dy -= xy; err += dx += xx;
                     } while (dy < dx);
                 }
                 else
@@ -404,19 +389,11 @@ namespace Playerdom.Shared.Services
 
         private static void AddStructure(Map m, Point position, string structureFileName)
         {
-            uint width;
-            uint height;
-            uint versionMajor;
-            uint versionMinor;
-            Tile[,] tiles;
-
-
             try
             {
-                BinaryReader br = null;
+                BinaryReader br;
 #if WINDOWS_UAP
-                StorageFolder folder;
-                folder = Task.Run(async () => await Package.Current.InstalledLocation.GetFolderAsync("Content")).Result;
+                var folder = Task.Run(async () => await Package.Current.InstalledLocation.GetFolderAsync("Content")).Result;
                 folder = Task.Run(async () => await folder.GetFolderAsync("Structures")).Result;
                 StorageFile file = Task.Run(async () => await folder.GetFileAsync(structureFileName)).Result;
                 br = new BinaryReader(Task.Run(async () => await file.OpenReadAsync()).Result.AsStreamForRead());
@@ -427,6 +404,8 @@ namespace Playerdom.Shared.Services
 #endif
 
 
+                uint versionMajor;
+                uint versionMinor;
                 if (br.ReadByte() == 0xCA && br.ReadByte() == 0xBD && br.ReadByte() == 0xAD)
                 {
                     versionMajor = br.ReadByte();
@@ -434,6 +413,8 @@ namespace Playerdom.Shared.Services
                 }
                 else return;
 
+                uint width;
+                uint height;
                 if (versionMajor == 1 && versionMinor == 0)
                 {
                     width = br.ReadUInt16();
@@ -441,7 +422,7 @@ namespace Playerdom.Shared.Services
                 }
                 else return;
 
-                tiles = new Tile[width, height];
+                var tiles = new Tile[width, height];
 
                 for (int y = 0; y < height; y++)
                 {
@@ -451,7 +432,7 @@ namespace Playerdom.Shared.Services
                     }
                 }
 
-                if (position.X + width <= Map.SIZE_X - 1 && position.Y + height <= Map.SIZE_Y - 1)
+                if (position.X + width <= Map.SizeX - 1 && position.Y + height <= Map.SizeY - 1)
                 {
                     for (int y = 0; y < height; y++)
                     {
@@ -466,7 +447,7 @@ namespace Playerdom.Shared.Services
                 }
                 br.Dispose();
             }
-            catch (Exception e)
+            catch (Exception e) // Unused exception??
             {
                 return;
             }
@@ -490,11 +471,10 @@ namespace Playerdom.Shared.Services
 
         private static void GenerateLine(Map m, Point p0, Point p1, ushort newTypeID, byte newvariantID)
         {
-
-            int xinc, yinc, x, y;
-            int dx, dy, e;
-            dx = Math.Abs(p1.X - p0.X);
-            dy = Math.Abs(p1.Y - p0.Y);
+            int xinc, yinc;
+            int e;
+            var dx = Math.Abs(p1.X - p0.X);
+            var dy = Math.Abs(p1.Y - p0.Y);
 
             if (p0.X < p1.X)
                 xinc = 1;
@@ -507,11 +487,10 @@ namespace Playerdom.Shared.Services
             else
                 yinc = -1;
 
-            x = p0.X;
-            y = p0.Y;
+            var x = p0.X;
+            var y = p0.Y;
 
-
-            if (x >= 0 && y >= 0 && x < Map.SIZE_X && y < Map.SIZE_Y)
+            if (x >= 0 && y >= 0 && x < Map.SizeX && y < Map.SizeY)
             {
                 m.tiles[x, y].typeID = newTypeID;
                 m.tiles[x, y].variantID = newvariantID;
@@ -533,11 +512,9 @@ namespace Playerdom.Shared.Services
                         y += yinc;
                     }
                     x += xinc;
-                    if (x >= 0 && y >= 0 && x < Map.SIZE_X && y < Map.SIZE_Y)
-                    {
-                        m.tiles[x, y].typeID = newTypeID;
-                        m.tiles[x, y].variantID = newvariantID;
-                    }
+                    if (x < 0 || y < 0 || x >= Map.SizeX || y >= Map.SizeY) continue;
+                    m.tiles[x, y].typeID = newTypeID;
+                    m.tiles[x, y].variantID = newvariantID;
                 }
             }
             else
@@ -556,11 +533,9 @@ namespace Playerdom.Shared.Services
                         x += xinc;
                     }
                     y += yinc;
-                    if (x >= 0 && y >= 0 && x < Map.SIZE_X && y < Map.SIZE_Y)
-                    {
-                        m.tiles[x, y].typeID = newTypeID;
-                        m.tiles[x, y].variantID = newvariantID;
-                    }
+                    if (x < 0 || y < 0 || x >= Map.SizeX || y >= Map.SizeY) continue;
+                    m.tiles[x, y].typeID = newTypeID;
+                    m.tiles[x, y].variantID = newvariantID;
                 }
             }
         }

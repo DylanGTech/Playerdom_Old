@@ -1,4 +1,11 @@
-﻿using Ceras;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net.Sockets;
+using System.Threading;
+using System.Threading.Tasks;
+using Ceras;
 using Ceras.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -7,18 +14,10 @@ using Playerdom.Shared;
 using Playerdom.Shared.Models;
 using Playerdom.Shared.Objects;
 using Playerdom.Shared.Services;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-namespace Playerdom.Server
+
+namespace Playerdom.Server.Core
 {
-    public class ServerClient : IDisposable
+    public sealed class ServerClient : IDisposable
     {
 
         public bool isLoggedIn { get; set; } = false;
@@ -32,17 +31,14 @@ namespace Playerdom.Server
         readonly CerasSerializer _receiveCeras;
         readonly CerasSerializer _fileCeras;
 
-        public long? UserID { get; set; } = null;
+        public ulong? UserID { get; set; }
 
-        public string EndPointString
-        {
-            get { return _tcpClient.Client.RemoteEndPoint.ToString(); }
-        }
+        public string EndPointString => _tcpClient.Client.RemoteEndPoint.ToString();
 
         public DateTime LastUpdate { get; set; }
 
         public Guid FocusedObjectID { get; set; }
-        public bool HasMap { get; set; } = false;
+        public bool HasMap { get; set; }
         public bool NeedsAllInfo { get; set; } = true;
 
         public KeyboardState InputState { get; set; }
@@ -63,12 +59,12 @@ namespace Playerdom.Server
             _fileCeras = new CerasSerializer(PlayerdomCerasSettings.config);
 
             Log("Player Joined");
-            Program.chatLog.Enqueue(new ChatMessage() { senderID = 0, message = "[SERVER]: Player Joined", timeSent = DateTime.Now, textColor = Color.Orange });
+            //TODO: Parse dates into shorter HH:mm formats.
+            Program.ChatLog.Enqueue(new ChatMessage { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Joined ", timeSent = DateTime.Now, textColor = Color.Orange });
 
             FocusedObjectID = Guid.NewGuid();
             InputState = new KeyboardState();
             LastUpdate = DateTime.Now;
-
         }
 
         public void Start()
@@ -105,7 +101,7 @@ namespace Playerdom.Server
             Program.level.gameObjects.TryAdd(FocusedObjectID, loadedPlayer);
         }
 
-        void StartReceivingMessages()
+        private void StartReceivingMessages()
         {
             Task.Run(async () =>
             {
@@ -113,7 +109,7 @@ namespace Playerdom.Server
                 {
                     // Keep receiving packets from the client and respond to them
                     // Eventually when the client disconnects we'll just get an exception and end the thread...
-                    while (Program.clients.ContainsKey(this.EndPointString))
+                    while (Program.Clients.ContainsKey(EndPointString))
                     {
                         var obj = await _receiveCeras.ReadFromStream(_netStream);
                         HandleMessage(obj);
@@ -121,8 +117,8 @@ namespace Playerdom.Server
                 }
                 catch (Exception e)
                 {
-                    if (!Program.leavingPlayers.Contains(EndPointString))
-                        Program.leavingPlayers.Enqueue(EndPointString);
+                    if (!Program.LeavingPlayers.Contains(EndPointString))
+                        Program.LeavingPlayers.Enqueue(EndPointString);
                     LogServerException(e);
                 }
             });
@@ -135,11 +131,11 @@ namespace Playerdom.Server
         }
 
 
-        void StartSendingMessages()
+        private void StartSendingMessages()
         {
-            Task.Run(async () =>
+            Task.Run(() =>
             {
-                while (Program.clients.ContainsKey(this.EndPointString))
+                while (Program.Clients.ContainsKey(EndPointString))
                 {
                     try
                     {
@@ -151,18 +147,16 @@ namespace Playerdom.Server
                                 //Tile Data
                                 MapColumn[] lc = new MapColumn[32];
 
-                                for(int i = 0; i < 32; i++)
+                                for (int i = 0; i < 32; i++)
                                 {
-                                    lc[i] = new MapColumn(0, new ushort[Map.SIZE_X], new byte[Map.SIZE_Y]);
+                                    lc[i] = new MapColumn(0, new ushort[Map.SizeX], new byte[Map.SizeY]);
                                 }
 
-
-
-                                for (uint i = 0; i < Map.SIZE_X; i++)
+                                for (uint i = 0; i < Map.SizeX; i++)
                                 {
 
                                     lc[i % 32].ColumnNumber = i;
-                                    for (int j = 0; j < Map.SIZE_Y; j++)
+                                    for (int j = 0; j < Map.SizeY; j++)
                                     {
                                         lc[i % 32].TypesColumn[j] = Program.level.tiles[i, j].typeID;
                                         lc[i % 32].VariantsColumn[j] = Program.level.tiles[i, j].variantID;
@@ -171,139 +165,123 @@ namespace Playerdom.Server
                                     if (i % 32 == 31)
                                     {
                                         Send(lc);
-
                                     }
                                 }
-
-
 
                                 //Focused Object
                                 Program.level.gameObjects.TryGetValue(FocusedObjectID, out GameObject g);
                                 Send(new KeyValuePair<Guid, GameObject>(FocusedObjectID, g));
-
-
                             }
-
 
                             if (HasMap)
                             {
                                 //All Objects
                                 Send(Program.level.gameObjects);
 
-
                                 //All Entities
                                 Send(Program.level.gameEntities);
 
                                 //All chat messages
-                                Send(Program.chatLog.ToList());
+                                Send(Program.ChatLog.ToList());
                             }
-
                         }
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         //Log($"Error while handling client '{_tcpClient.Client.RemoteEndPoint}': {e}");
-                        if (!Program.leavingPlayers.Contains(EndPointString))
-                            Program.leavingPlayers.Enqueue(EndPointString);
+                        if (!Program.LeavingPlayers.Contains(EndPointString))
+                            Program.LeavingPlayers.Enqueue(EndPointString);
 
                         LogServerException(e);
                     }
-
-
+                    // NEVER USE THREAD.SLEEP
                     Thread.Sleep(20);
                 }
             });
         }
 
-
-        void HandleMessage(object obj)
+        private void HandleMessage(object obj)
         {
-            if (obj is KeyboardState state)
+            switch (obj)
             {
-                InputState = state;
+                case KeyboardState state:
+                    InputState = state;
+                    break;
+                case string s:
+                    if (s == "MapAffirmation")
+                    {
+                        HasMap = true;
+                    }
 
-            }
-            else if (obj is string str)
-            {
-                if (str == "MapAffirmation")
-                {
-                    HasMap = true;
-                }
-            }
-            else if(obj is KeyValuePair<string, string> pair)
-            {
-                string pairValue;
-                switch (pair.Key)
-                {
-                    default:
-                        throw new Exception("Unknown object type");
-                    case "ChatMessage":
-                        if (UserID != null)
+                    break;
+                case KeyValuePair<string, string> pair:
+                    switch (pair.Key)
+                    {
+                        default:
+                            throw new Exception("Unknown object type");
+                        case "ChatMessage":
+                            if (UserID != null)
+                            {
+
+                                var pairValue = pair.Value;
+                                if (pairValue.Length > 256)
+                                    pairValue = pairValue.Substring(0, 256);
+
+                                if (pairValue[0] == '/')
+                                    ProcessCommand(pairValue);
+                                else
+                                    Program.ChatLog.Enqueue(new ChatMessage
+                                    {
+                                        message =
+                                            $"{DateTime.Now:HH:mm} [{GetUsername()}]: {pairValue}",
+                                        senderID = UserID.Value,
+                                        timeSent = DateTime.Now,
+                                        textColor = Color.White
+                                    });
+                            }
+                            break;
+                    }
+                    break;
+                case Guid token:
+                    if(!isLoggedIn)
+                    {
+                        Guid newToken = Guid.NewGuid();
+                        long? potentialID = ldb.GetPlayerID(token);
+                        if (potentialID != null)
                         {
-
-                            pairValue = pair.Value;
-                            if (pairValue.Length > 256)
-                                pairValue = pairValue.Substring(0, 256);
-
-
-
-                            if (pairValue[0] == '/')
-                                ProcessCommand(pairValue);
-                            else
-                                Program.chatLog.Enqueue(new ChatMessage { message = string.Format("[{0}]: {1}", GetUsername(), pairValue), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.White });
+                            UserID = potentialID.Value;
+                            ldb.UpdatePlayerToken(UserID.Value, token);
                         }
-                        break;
-                }
-            }
-            else if(obj is Guid token)
-            {
-                if (!isLoggedIn)
-                {
-
-                    Guid newToken = Guid.NewGuid();
-
-
-                    long? potentialID = ldb.GetPlayerID(token);
-                    if (potentialID != null)
-                    {
-                        UserID = potentialID.Value;
-                        ldb.UpdatePlayerToken(UserID.Value, token);
+                        else
+                        {
+                            UserID = ldb.CreateNewPlayer(newToken);
+                        }
+                        Send(newToken);
                     }
-                    else
-                    {
-                        UserID = ldb.CreateNewPlayer(newToken);
-                    }
-
-
-                    Send(newToken);
-                }
+                default:
+                    throw new Exception("Unknown object type");
             }
-            else throw new Exception("Unknown object type");
 
             LastUpdate = DateTime.Now;
         }
 
-        public void Log(string text) => Console.WriteLine("[Server] " + text);
+        public static void Log(string text) => Console.WriteLine("{0:HH:mm}", DateTime.Now.ToString("HH:mm") + " [Server] " + text);
 
-        public void Send(object obj)
+        private void Send(object obj)
         {
-            if(Program.clients.ContainsKey(this.EndPointString))
+            if (Program.Clients.ContainsKey(EndPointString))
                 _sendCeras.WriteToStream(_netStream, obj);
-
         }
 
-
-
-
-        static void LogServerException(Exception e)
+        private static void LogServerException(Exception e)
         {
             string logPath = Path.Combine(Environment.CurrentDirectory, "Logs", "error_" + DateTime.Now.ToString("yyyy-MM-dd_hh-mm-ss-tt") + ".txt");
 
             if (!Directory.Exists(Path.Combine(Environment.CurrentDirectory, "Logs")))
                 Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "Logs"));
 
-            FileStream logFile = System.IO.File.Create(logPath);
-            StreamWriter logWriter = new System.IO.StreamWriter(logFile);
+            FileStream logFile = File.Create(logPath);
+            StreamWriter logWriter = new StreamWriter(logFile);
             logWriter.WriteLine(e.GetType().ToString());
             logWriter.WriteLine(e.Message);
             logWriter.WriteLine(e.StackTrace);
@@ -311,10 +289,6 @@ namespace Playerdom.Server
             logFile.Close();
             logWriter.Dispose();
         }
-
-
-
-        private string nickName = null;
 
         public string GetUsername()
         {
@@ -324,10 +298,9 @@ namespace Playerdom.Server
                 //throw new NullReferenceException("User doesn't have an ID");
                 return null;
 
-
-            if (nickName == null)
+            if (_nickName == null)
                 return "Player " + UserID.Value;
-            else return nickName;
+            return _nickName;
         }
 
         public void Dispose()
@@ -336,37 +309,29 @@ namespace Playerdom.Server
             _tcpClient.Dispose();
         }
 
-
-
         private void ProcessCommand(string command)
         {
             command = command.Substring(1);
 
             string[] args = command.Split(' ');
 
+            if (args[0] != "nick" || args.Length != 2 || args[1].Length > 48) return;
+            if (Program.Clients.Count(c => c.Value._nickName == args[1]) != 0) return;
+            string oldName = GetUsername();
 
-            if (args[0] == "nick" && args.Length == 2 && args[1].Length <= 48)
-            {
+            _nickName = args[1];
 
-                if(Program.clients.Count(c => c.Value.nickName == args[1]) == 0)
+            Program.level.gameObjects[FocusedObjectID].SetDisplayName(args[1]);
+
+            if (UserID != null)
+                Program.ChatLog.Enqueue(new ChatMessage
                 {
-                    string oldName = GetUsername();
-
-
-                    nickName = args[1];
-
-                    try
-                    {
-                        Program.level.gameObjects[this.FocusedObjectID].SetDisplayName(args[1]);
-
-                        Program.chatLog.Enqueue(new ChatMessage { message = string.Format("[Server]: {0} is now known as {1}", oldName, nickName), senderID = UserID.Value, timeSent = DateTime.Now, textColor = Color.Yellow });
-                    }
-                    catch(Exception e)
-                    {
-
-                    }
-                }
-            }
+                    message =
+                        $"{DateTime.Now:HH:mm} [Server]: {oldName} is now known as {_nickName}",
+                    senderID = UserID.Value,
+                    timeSent = DateTime.Now,
+                    textColor = Color.Yellow
+                });
         }
     }
 }

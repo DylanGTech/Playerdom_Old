@@ -3,8 +3,6 @@ using Playerdom.Shared.Objects;
 using Playerdom.Shared.Entities;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Reflection;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Playerdom.Shared.Services;
@@ -15,64 +13,63 @@ namespace Playerdom.Shared
 {
     public static class PlayerdomCerasSettings
     {
-        public static SerializerConfig config
+        public static SerializerConfig Config
         {
-            get; private set;
+            get;
         } = new SerializerConfig();
 
         public static void Initialize()
         {
+            Config.KnownTypes.Add(typeof(GameObject));
+            Config.KnownTypes.Add(typeof(Player));
+            Config.KnownTypes.Add(typeof(Enemy));
+            Config.KnownTypes.Add(typeof(Townsman));
+
+            Config.KnownTypes.Add(typeof(Entity));
+            Config.KnownTypes.Add(typeof(Bullet));
+            Config.KnownTypes.Add(typeof(MoneyDrop));
+
+            Config.KnownTypes.Add(typeof(ChatMessage));
+            Config.KnownTypes.Add(typeof(List<ChatMessage>));
+
+
+            Config.KnownTypes.Add(typeof(Vector2));
+            Config.KnownTypes.Add(typeof(Point));
+            Config.KnownTypes.Add(typeof(Rectangle));
+            Config.KnownTypes.Add(typeof(Guid));
+            Config.KnownTypes.Add(typeof(Color));
+            Config.KnownTypes.Add(typeof(Keys));
+            Config.KnownTypes.Add(typeof(Keys[]));
+
+            Config.KnownTypes.Add(typeof(KeyValuePair<string, string>));
+
+            Config.KnownTypes.Add(typeof(bool));
+            Config.KnownTypes.Add(typeof(uint));
+            Config.KnownTypes.Add(typeof(string));
+            Config.KnownTypes.Add(typeof(ObjectType));
+            Config.KnownTypes.Add(typeof(DirectionX));
+            Config.KnownTypes.Add(typeof(DirectionY));
+            Config.KnownTypes.Add(typeof(MapColumn));
+            Config.KnownTypes.Add(typeof(MapColumn[]));
+            Config.KnownTypes.Add(typeof(KeyValuePair<Guid, GameObject>));
+            Config.KnownTypes.Add(typeof(Dictionary<Guid, GameObject>));
+            Config.KnownTypes.Add(typeof(Dictionary<Guid, Entity>));
+            Config.KnownTypes.Add(typeof(ConcurrentDictionary<Guid, GameObject>));
+            Config.KnownTypes.Add(typeof(ConcurrentDictionary<Guid, Entity>));
+
+            Config.KnownTypes.Add(typeof(KeyboardState));
             
-            config.KnownTypes.Add(typeof(GameObject));
-            config.KnownTypes.Add(typeof(Player));
-            config.KnownTypes.Add(typeof(Enemy));
-            config.KnownTypes.Add(typeof(Townsman));
+            Config.ConfigType<Player>().ConstructBy(typeof(Player).GetConstructors()[0]);
+            Config.ConfigType<Enemy>().ConstructBy(typeof(Enemy).GetConstructors()[0]);
+            Config.ConfigType<Townsman>().ConstructBy(typeof(Townsman).GetConstructors()[0]);
+            Config.ConfigType<Bullet>().ConstructBy(typeof(Bullet).GetConstructors()[0]);
+            Config.ConfigType<MoneyDrop>().ConstructBy(typeof(MoneyDrop).GetConstructors()[0]);
+            Config.ConfigType<MapColumn>().ConstructBy(typeof(MapColumn).GetConstructors()[0]);
 
-            config.KnownTypes.Add(typeof(Entity));
-            config.KnownTypes.Add(typeof(Bullet));
-            config.KnownTypes.Add(typeof(MoneyDrop));
+            Config.ConfigType<Point>().ConstructBy(typeof(Point).GetConstructor(new Type[] { typeof(int), typeof(int) }));
+            Config.ConfigType<Vector2>().ConstructBy(typeof(Vector2).GetConstructor(new Type[] { typeof(float), typeof(float) }));
 
-            config.KnownTypes.Add(typeof(ChatMessage));
-            config.KnownTypes.Add(typeof(List<ChatMessage>));
-
-
-            config.KnownTypes.Add(typeof(Vector2));
-            config.KnownTypes.Add(typeof(Point));
-            config.KnownTypes.Add(typeof(Rectangle));
-            config.KnownTypes.Add(typeof(Guid));
-            config.KnownTypes.Add(typeof(Color));
-            config.KnownTypes.Add(typeof(Keys));
-            config.KnownTypes.Add(typeof(Keys[]));
-
-            config.KnownTypes.Add(typeof(KeyValuePair<string, string>));
-
-            config.KnownTypes.Add(typeof(bool));
-            config.KnownTypes.Add(typeof(uint));
-            config.KnownTypes.Add(typeof(string));
-            config.KnownTypes.Add(typeof(ObjectType));
-            config.KnownTypes.Add(typeof(DirectionX));
-            config.KnownTypes.Add(typeof(DirectionY));
-            config.KnownTypes.Add(typeof(MapColumn));
-            config.KnownTypes.Add(typeof(MapColumn[]));
-            config.KnownTypes.Add(typeof(KeyValuePair<Guid, GameObject>));
-            config.KnownTypes.Add(typeof(Dictionary<Guid, GameObject>));
-            config.KnownTypes.Add(typeof(Dictionary<Guid, Entity>));
-            config.KnownTypes.Add(typeof(ConcurrentDictionary<Guid, GameObject>));
-            config.KnownTypes.Add(typeof(ConcurrentDictionary<Guid, Entity>));
-
-            config.KnownTypes.Add(typeof(KeyboardState));
-            
-            config.ConfigType<Player>().ConstructBy(typeof(Player).GetConstructors()[0]);
-            config.ConfigType<Enemy>().ConstructBy(typeof(Enemy).GetConstructors()[0]);
-            config.ConfigType<Townsman>().ConstructBy(typeof(Townsman).GetConstructors()[0]);
-            config.ConfigType<Bullet>().ConstructBy(typeof(Bullet).GetConstructors()[0]);
-            config.ConfigType<MoneyDrop>().ConstructBy(typeof(MoneyDrop).GetConstructors()[0]);
-            config.ConfigType<MapColumn>().ConstructBy(typeof(MapColumn).GetConstructors()[0]);
-
-            config.ConfigType<Point>().ConstructBy(typeof(Point).GetConstructor(new Type[] { typeof(int), typeof(int) }));
-            config.ConfigType<Vector2>().ConstructBy(typeof(Vector2).GetConstructor(new Type[] { typeof(float), typeof(float) }));
-
-            config.Advanced.PersistTypeCache = true;
+            Config.Advanced.PersistTypeCache = true;
         }
     }
 }

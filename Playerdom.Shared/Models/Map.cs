@@ -4,37 +4,32 @@ using Playerdom.Shared.Objects;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Playerdom.Shared.Models
 {
     public class Map
     {
-        public const uint SIZE_X = 2048;
-        public const uint SIZE_Y = 2048;
+        public const uint SizeX = 2048;
+        public const uint SizeY = 2048;
 
         public Point spawnTileLocation;
 
 
         public string levelName = "";
-        public Tile[,] tiles = new Tile[SIZE_X, SIZE_Y];
+        public Tile[,] tiles = new Tile[SizeX, SizeY];
         public ConcurrentDictionary<Guid, GameObject> gameObjects = new ConcurrentDictionary<Guid, GameObject>();
         public ConcurrentDictionary<Guid, Entity> gameEntities = new ConcurrentDictionary<Guid, Entity>();
-
 
         public List<Guid> objectsMarkedForDeletion = new List<Guid>();
         public List<Guid> entitiesMarkedForDeletion = new List<Guid>();
 
-
-
         public Map Clone()
         {
-            Map m = new Map();
+            Map m = new Map {levelName = levelName};
 
-            m.levelName = levelName;
-            for (int y = 0; y < Map.SIZE_Y; y++)
+            for (int y = 0; y < Map.SizeY; y++)
             {
-                for (int x = 0; x < Map.SIZE_X; x++)
+                for (int x = 0; x < Map.SizeX; x++)
                 {
                     m.tiles[x, y].typeID = tiles[x, y].typeID;
                     m.tiles[x, y].variantID = tiles[x, y].variantID;
@@ -49,7 +44,6 @@ namespace Playerdom.Shared.Models
             m.entitiesMarkedForDeletion = new List<Guid>(entitiesMarkedForDeletion);
 
             return m;
-
         }
     }
 
@@ -61,5 +55,4 @@ namespace Playerdom.Shared.Models
         public ushort typeID { get; set; } //Determines default properties
         public byte variantID { get; set; }
     }
-
 }

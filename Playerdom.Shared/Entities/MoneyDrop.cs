@@ -3,10 +3,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Playerdom.Shared.Models;
 using Playerdom.Shared.Objects;
-using Playerdom.Shared.Services;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Playerdom.Shared.Entities
 {
@@ -14,15 +11,13 @@ namespace Playerdom.Shared.Entities
     {
         public GameObject Dropper
         {
-            get; private set;
-        } = null;
+            get;
+        }
 
         public decimal MoneyContained
         {
             get; private set;
-        } = 0;
-
-
+        }
 
         public MoneyDrop(Point position, Vector2 size, decimal moneyContained, GameObject dropper = null)
         {
@@ -34,18 +29,16 @@ namespace Playerdom.Shared.Entities
 
         public override void LoadContent(ContentManager content, GraphicsDevice device)
         {
-
             ActiveTexture = content.Load<Texture2D>("ruppie");
-
             base.LoadContent(content, device);
         }
-
 
         public override void Update(GameTime time, Map map)
         {
 
         }
-        public override void Draw(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset, RenderTarget2D target)
+
+        public override void Draw(SpriteBatch spriteBatch, GraphicsDevice device, Vector2 centerOffset, RenderTarget2D target)
         {
             spriteBatch.Draw(ActiveTexture, new Rectangle((int)((target.Width / 2) - (Size.X / 2) - centerOffset.X), (int)((target.Height / 2) - (Size.Y / 2) - centerOffset.Y), (int)Size.X, (int)Size.Y), Color.White);
         }

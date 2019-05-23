@@ -1,10 +1,6 @@
-﻿using Microsoft.Xna.Framework;
-using Newtonsoft.Json;
-using System;
-using System.IO;
-using Playerdom.Shared;
+﻿using Playerdom.Shared;
 
-namespace Playerdom.Shared
+namespace Playerdom.Client
 {
     /// <summary>
     /// The main class.
@@ -14,7 +10,7 @@ namespace Playerdom.Shared
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        static void Main()
+        private static void Main()
         {
             var factory = new MonoGame.Framework.GameFrameworkViewSource<GameLevel>();
             Windows.ApplicationModel.Core.CoreApplication.Run(factory);
