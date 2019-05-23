@@ -2,19 +2,18 @@
 using System.IO;
 using System.Drawing;
 
-
 namespace PngToPldms
 {
     class Program
     {
-        private static byte VERSION_MAJOR = 1;
-        private static byte VERSION_MINOR = 0;
+        private const byte VersionMajor = 1;
+        private const byte VersionMinor = 0;
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             string path;
             Color[,] pixels = null;
-            Bitmap bmp = null;
+            Bitmap bmp;
             if (args.Length != 1)
             {
                 Console.WriteLine("Error: Accepts only one argument");
@@ -35,7 +34,7 @@ namespace PngToPldms
             {
                 bmp = new Bitmap(path);
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine("Error: Could not open file");
                 return;
@@ -47,18 +46,17 @@ namespace PngToPldms
                 bw.Write((byte)0xBD);
                 bw.Write((byte)0xAD);
 
-                bw.Write(VERSION_MAJOR);
-                bw.Write(VERSION_MINOR);
+                bw.Write(VersionMajor);
+                bw.Write(VersionMinor);
 
                 bw.Write((ushort)bmp.Width);
                 bw.Write((ushort)bmp.Height);
 
-                int color;
                 for (int y = 0; y < bmp.Height; y++)
                 {
                     for (int x = 0; x < bmp.Width; x++)
                     {
-                        color = bmp.GetPixel(x, y).ToArgb();
+                        var color = bmp.GetPixel(x, y).ToArgb();
 
                         if (color == Convert.ToInt32("FF00FF00", 16)) //Ground
                         {

@@ -2,23 +2,17 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Playerdom.Shared.Objects;
-using Playerdom.Shared.Services;
-using Playerdom.Shared.Entities;
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Runtime.Serialization;
 using Playerdom.Shared.Models;
 
 namespace Playerdom.Shared.Entities
 {
-
     public class Bullet : Entity
     {
         public GameObject Sender
         {
-            get; private set;
-        } = null;
+            get;
+        }
 
         public Vector2 Velocity
         {
@@ -42,23 +36,22 @@ namespace Playerdom.Shared.Entities
 
             ActiveTexture = tmp;
 
-
             base.LoadContent(content, device);
         }
-
 
         public override void Update(GameTime time, Map map)
         {
             Move((int)Velocity.X, (int)Velocity.Y, map);
 
             if (Position.X <= 0 || Position.Y <= 0 ||
-                Position.X + Size.X >= Map.SIZE_X * Tile.SIZE_X ||
-                Position.Y + Size.Y >= Map.SIZE_Y * Tile.SIZE_Y)
+                Position.X + Size.X >= Map.SizeX * Tile.SIZE_X ||
+                Position.Y + Size.Y >= Map.SizeY * Tile.SIZE_Y)
                 MarkedForDeletion = true;
         }
-        public override void Draw(SpriteBatch spriteBatch, GraphicsDevice device, Microsoft.Xna.Framework.Vector2 centerOffset, RenderTarget2D target)
+
+        public override void Draw(SpriteBatch spriteBatch, GraphicsDevice device, Vector2 centerOffset, RenderTarget2D target)
         {
-            spriteBatch.Draw(ActiveTexture, new Rectangle((int)((target.Width / 2) - (Size.X / 2) - centerOffset.X), (int)((target.Height / 2) - (Size.Y / 2) - centerOffset.Y), (int)Size.X, (int)Size.Y), Color.Red);
+            spriteBatch.Draw(ActiveTexture, new Rectangle((int)(target.Width / 2 - (Size.X / 2) - centerOffset.X), (int)(target.Height / 2 - (Size.Y / 2) - centerOffset.Y), (int)Size.X, (int)Size.Y), Color.Red);
         }
 
         public override void UpdateStats(Entity e)
@@ -66,7 +59,7 @@ namespace Playerdom.Shared.Entities
             if (e.GetType() != typeof(Bullet))
                 throw new Exception("Type to update must be the same type as the original");
 
-            Velocity = (e as Bullet).Velocity;
+            Velocity = ((Bullet)e).Velocity;
             base.UpdateStats(e);
         }
     }
