@@ -231,172 +231,173 @@ namespace Playerdom.Shared
                         {
                             char key = e.Character;
 
-                                        if (ks.IsKeyUp(Keys.LeftShift) && ks.IsKeyUp(Keys.RightShift))
-                                        {
-                                            if (char.IsLetter(key))
-                                                key = char.ToLower(key);
-                                        }
-                                        else if (char.IsDigit(key))
-                                            switch (key)
-                                            {
-                                                default:
-                                                    break;
-                                                case '0':
-                                                    key = ')';
-                                                    break;
                             if (ks.IsKeyUp(Keys.LeftShift) && ks.IsKeyUp(Keys.RightShift))
                             {
                                 if (char.IsLetter(key))
                                     key = char.ToLower(key);
-                                else
-                                {
-                                    //switch (e.Character)
-                                    //{
-                                    //    case Keys.OemBackslash:
-                                    //        key = '\\';
-                                    //        break;
-
-                                    //    case Keys.OemCloseBrackets:
-                                    //        key = ']';
-                                    //        break;
-
-                                    //    case Keys.OemComma:
-                                    //        key = ',';
-                                    //        break;
-
-                                    //    case Keys.OemMinus:
-                                    //        key = '-';
-                                    //        break;
-
-                                    //    case Keys.OemPeriod:
-                                    //        key = '.';
-                                    //        break;
-
-                                    //    case Keys.OemPipe:
-                                    //        key = '|';
-                                    //        break;
-
-                                    //    case Keys.OemPlus:
-                                    //        key = '+';
-                                    //        break;
-
-                                    //    case Keys.OemQuestion:
-                                    //        key = '?';
-                                    //        break;
-
-                                    //    case Keys.OemQuotes:
-                                    //        key = '\"';
-                                    //        break;
-
-                                    //    case Keys.OemSemicolon:
-                                    //        key = ';';
-                                    //        break;
-
-                                    //    case Keys.OemTilde:
-                                    //        key = '~';
-                                    //        break;
-                                    //}
-                                }
                             }
                             else if (char.IsDigit(key))
                                 switch (key)
                                 {
+                                    default:
+                                        break;
                                     case '0':
                                         key = ')';
                                         break;
+                                        if (ks.IsKeyUp(Keys.LeftShift) && ks.IsKeyUp(Keys.RightShift))
+                                        {
+                                            if (char.IsLetter(key))
+                                                key = char.ToLower(key);
+                                            else
+                                            {
+                                                //switch (e.Character)
+                                                //{
+                                                //    case Keys.OemBackslash:
+                                                //        key = '\\';
+                                                //        break;
 
-                                    case '1':
-                                        key = '!';
-                                        break;
+                                                //    case Keys.OemCloseBrackets:
+                                                //        key = ']';
+                                                //        break;
 
-                                    case '2':
-                                        key = '@';
-                                        break;
+                                                //    case Keys.OemComma:
+                                                //        key = ',';
+                                                //        break;
 
-                                    case '3':
-                                        key = '#';
-                                        break;
+                                                //    case Keys.OemMinus:
+                                                //        key = '-';
+                                                //        break;
 
-                                    case '4':
-                                        key = '$';
-                                        break;
+                                                //    case Keys.OemPeriod:
+                                                //        key = '.';
+                                                //        break;
 
-                                    case '5':
-                                        key = '%';
-                                        break;
+                                                //    case Keys.OemPipe:
+                                                //        key = '|';
+                                                //        break;
 
-                                    case '6':
-                                        key = '^';
-                                        break;
+                                                //    case Keys.OemPlus:
+                                                //        key = '+';
+                                                //        break;
 
-                                    case '7':
-                                        key = '&';
-                                        break;
+                                                //    case Keys.OemQuestion:
+                                                //        key = '?';
+                                                //        break;
 
-                                    case '8':
-                                        key = '*';
-                                        break;
+                                                //    case Keys.OemQuotes:
+                                                //        key = '\"';
+                                                //        break;
 
-                                    case '9':
-                                        key = '(';
-                                        break;
+                                                //    case Keys.OemSemicolon:
+                                                //        key = ';';
+                                                //        break;
+
+                                                //    case Keys.OemTilde:
+                                                //        key = '~';
+                                                //        break;
+                                                //}
+                                            }
+                                        }
+                                        else if (char.IsDigit(key))
+                                            switch (key)
+                                            {
+                                                case '0':
+                                                    key = ')';
+                                                    break;
+
+                                                case '1':
+                                                    key = '!';
+                                                    break;
+
+                                                case '2':
+                                                    key = '@';
+                                                    break;
+
+                                                case '3':
+                                                    key = '#';
+                                                    break;
+
+                                                case '4':
+                                                    key = '$';
+                                                    break;
+
+                                                case '5':
+                                                    key = '%';
+                                                    break;
+
+                                                case '6':
+                                                    key = '^';
+                                                    break;
+
+                                                case '7':
+                                                    key = '&';
+                                                    break;
+
+                                                case '8':
+                                                    key = '*';
+                                                    break;
+
+                                                case '9':
+                                                    key = '(';
+                                                    break;
+                                            }
+                                        else
+                                        {
+                                            switch (e.Character)
+                                            {
+                                                case '\\':
+                                                    key = '|';
+                                                    break;
+
+                                                case ']':
+                                                    key = '}';
+                                                    break;
+
+                                                case ',':
+                                                    key = '<';
+                                                    break;
+
+                                                case '-':
+                                                    key = '_';
+                                                    break;
+
+                                                case '.':
+                                                    key = '>';
+                                                    break;
+
+                                                case ';':
+                                                    key = ':';
+                                                    break;
+                                            }
+                                        }
+
+
+                                        typedMessage += key;
                                 }
-                            else
-                            {
-                                switch (e.Character)
-                                {
-                                    case '\\':
-                                        key = '|';
-                                        break;
-
-                                    case ']':
-                                        key = '}';
-                                        break;
-
-                                    case ',':
-                                        key = '<';
-                                        break;
-
-                                    case '-':
-                                        key = '_';
-                                        break;
-
-                                    case '.':
-                                        key = '>';
-                                        break;
-
-                                    case ';':
-                                        key = ':';
-                                        break;
-                                }
-                            }
-
-
-                            typedMessage += key;
                         }
+                    };
+
+                    while (true)
+                    {
+                        // KeyboardState ks = Keyboard.GetState();
+
+                        if (!isTyping)
+                        {
+                            keyboardSerializer.WriteToStream(_netStream, ks);
+
+                            if (ks.IsKeyDown(Keys.OemSemicolon))
+                            {
+                                isTyping = true;
+                            }
+                        }
+
+                        Thread.Sleep(15);
                     }
+
                 };
 
-                while (true)
-                {
-                    KeyboardState ks = Keyboard.GetState();
-
-                    if (!isTyping)
-                    {
-                        keyboardSerializer.WriteToStream(_netStream, ks);
-
-                        if (ks.IsKeyDown(Keys.OemSemicolon))
-                        {
-                            isTyping = true;
-                        }
-                    }
-
-                    Thread.Sleep(15);
-                }
-
+                base.Initialize();
             });
-
-            base.Initialize();
         }
 
         /// <summary>
@@ -526,7 +527,7 @@ namespace Playerdom.Shared
                 {
                     Vector2 d = focusedObject.Value.Distance(o.Value);
 
-                    if (Math.Abs((int)d.Length()) < 24 * Tile.SIZE_X)
+                    if (Math.Abs((int)d.Length()) < 24 * Tile.SizeX)
                         o.Value.DrawSprite(spriteBatch, d, target);
                 }
 
@@ -546,7 +547,7 @@ namespace Playerdom.Shared
                 {
                     Vector2 d = focusedObject.Value.Distance(o.Value);
 
-                    if (Math.Abs((int)d.Length()) < 24 * Tile.SIZE_X)
+                    if (Math.Abs((int)d.Length()) < 24 * Tile.SizeX)
                         o.Value.DrawTag(spriteBatch, d, target);
                 }
 
@@ -567,7 +568,7 @@ namespace Playerdom.Shared
                 {
                     Vector2 d = focusedObject.Value.Distance(o.Value);
 
-                    if (Math.Abs((int)d.Length()) < 24 * Tile.SIZE_X)
+                    if (Math.Abs((int)d.Length()) < 24 * Tile.SizeX)
                         o.Value.DrawDialog(spriteBatch, d, target);
                 }
 
@@ -671,8 +672,8 @@ namespace Playerdom.Shared
         protected void DrawMap()
         {
 
-            ushort YTilePosition = (ushort)(focusedObject.Value.Position.Y / Tile.SIZE_Y);
-            ushort XTilePosition = (ushort)(focusedObject.Value.Position.X / Tile.SIZE_X);
+            ushort YTilePosition = (ushort)(focusedObject.Value.Position.Y / Tile.SizeY);
+            ushort XTilePosition = (ushort)(focusedObject.Value.Position.X / Tile.SizeX);
 
             int ymin = YTilePosition - VIEW_DISTANCE;
             int ymax = YTilePosition + VIEW_DISTANCE;
@@ -689,38 +690,38 @@ namespace Playerdom.Shared
             {
                 for (int x = xmin; x < xmax; x++)
                 {
-                    int positionX = (int)(x * Tile.SIZE_X - focusedObject.Value.Position.X + target.Width / 2 - focusedObject.Value.Size.X / 2);
-                    int positionY = (int)(y * Tile.SIZE_Y - focusedObject.Value.Position.Y + target.Height / 2 - focusedObject.Value.Size.Y / 2);
+                    int positionX = (int)(x * Tile.SizeX - focusedObject.Value.Position.X + target.Width / 2 - focusedObject.Value.Size.X / 2);
+                    int positionY = (int)(y * Tile.SizeY - focusedObject.Value.Position.Y + target.Height / 2 - focusedObject.Value.Size.Y / 2);
 
                     if (level.tiles[x, y].typeID == 1)
                     {
-                        if (level.tiles[x, y].variantID == 1) spriteBatch.Draw(grassTexture, new Rectangle(positionX, positionY, (int)Tile.SIZE_X, (int)Tile.SIZE_Y), Color.White);
-                        else if (level.tiles[x, y].variantID == 2) spriteBatch.Draw(flowerTexture, new Rectangle(positionX, positionY, (int)Tile.SIZE_X, (int)Tile.SIZE_Y), Color.White);
-                        else spriteBatch.Draw(groundTexture, new Rectangle(positionX, positionY, (int)Tile.SIZE_X, (int)Tile.SIZE_Y), Color.White);
+                        if (level.tiles[x, y].variantID == 1) spriteBatch.Draw(grassTexture, new Rectangle(positionX, positionY, (int)Tile.SizeX, (int)Tile.SizeY), Color.White);
+                        else if (level.tiles[x, y].variantID == 2) spriteBatch.Draw(flowerTexture, new Rectangle(positionX, positionY, (int)Tile.SizeX, (int)Tile.SizeY), Color.White);
+                        else spriteBatch.Draw(groundTexture, new Rectangle(positionX, positionY, (int)Tile.SizeX, (int)Tile.SizeY), Color.White);
                     }
                     else if (level.tiles[x, y].typeID == 2)
                     {
-                        if (level.tiles[x, y].variantID == 1) spriteBatch.Draw(mossyStoneTexture, new Rectangle(positionX, positionY, (int)Tile.SIZE_X, (int)Tile.SIZE_Y), Color.White);
-                        else spriteBatch.Draw(stoneTexture, new Rectangle(positionX, positionY, (int)Tile.SIZE_X, (int)Tile.SIZE_Y), Color.White);
+                        if (level.tiles[x, y].variantID == 1) spriteBatch.Draw(mossyStoneTexture, new Rectangle(positionX, positionY, (int)Tile.SizeX, (int)Tile.SizeY), Color.White);
+                        else spriteBatch.Draw(stoneTexture, new Rectangle(positionX, positionY, (int)Tile.SizeX, (int)Tile.SizeY), Color.White);
                     }
                     else if (level.tiles[x, y].typeID == 3)
                     {
-                        if (level.tiles[x, y].variantID == 1) spriteBatch.Draw(gravelPathTexture, new Rectangle(positionX, positionY, (int)Tile.SIZE_X, (int)Tile.SIZE_Y), Color.White);
-                        else spriteBatch.Draw(sandyPathTexture, new Rectangle(positionX, positionY, (int)Tile.SIZE_X, (int)Tile.SIZE_Y), Color.White);
+                        if (level.tiles[x, y].variantID == 1) spriteBatch.Draw(gravelPathTexture, new Rectangle(positionX, positionY, (int)Tile.SizeX, (int)Tile.SizeY), Color.White);
+                        else spriteBatch.Draw(sandyPathTexture, new Rectangle(positionX, positionY, (int)Tile.SizeX, (int)Tile.SizeY), Color.White);
                     }
                     else if (level.tiles[x, y].typeID == 4)
                     {
-                        if (level.tiles[x, y].variantID == 1) spriteBatch.Draw(wavyWaterTexture, new Rectangle(positionX, positionY, (int)Tile.SIZE_X, (int)Tile.SIZE_Y), Color.White);
-                        else spriteBatch.Draw(waterTexture, new Rectangle(positionX, positionY, (int)Tile.SIZE_X, (int)Tile.SIZE_Y), Color.White);
+                        if (level.tiles[x, y].variantID == 1) spriteBatch.Draw(wavyWaterTexture, new Rectangle(positionX, positionY, (int)Tile.SizeX, (int)Tile.SizeY), Color.White);
+                        else spriteBatch.Draw(waterTexture, new Rectangle(positionX, positionY, (int)Tile.SizeX, (int)Tile.SizeY), Color.White);
 
                     }
                     else if (level.tiles[x, y].typeID == 5)
                     {
-                        spriteBatch.Draw(bricksTexture, new Rectangle(positionX, positionY, (int)Tile.SIZE_X, (int)Tile.SIZE_Y), Color.White);
+                        spriteBatch.Draw(bricksTexture, new Rectangle(positionX, positionY, (int)Tile.SizeX, (int)Tile.SizeY), Color.White);
                     }
                     else if (level.tiles[x, y].typeID == 6)
                     {
-                        spriteBatch.Draw(woodFlooringTexture, new Rectangle(positionX, positionY, (int)Tile.SIZE_X, (int)Tile.SIZE_Y), Color.White);
+                        spriteBatch.Draw(woodFlooringTexture, new Rectangle(positionX, positionY, (int)Tile.SizeX, (int)Tile.SizeY), Color.White);
                     }
                 }
             }
@@ -745,13 +746,13 @@ namespace Playerdom.Shared
 
         static async void ReceiveOutputAsync()
         {
-            CerasSerializer _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.config);
-            CerasSerializer _sendCeras = new CerasSerializer(PlayerdomCerasSettings.config);
+            CerasSerializer _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.Config);
+            CerasSerializer _sendCeras = new CerasSerializer(PlayerdomCerasSettings.Config);
 
 
             _sendCeras.WriteToStream(_netStream, securityToken);
 
-            
+
             while (true)
             {
                 object obj = await _receiveCeras.ReadFromStream(_netStream);
@@ -858,7 +859,7 @@ namespace Playerdom.Shared
                 {
                     chatLog = messages;
                 }
-                else if(obj is Guid newToken)
+                else if (obj is Guid newToken)
                 {
                     securityToken = newToken;
 

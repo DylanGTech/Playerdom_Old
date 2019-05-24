@@ -9,13 +9,13 @@ using Ceras;
 using Ceras.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-using Playerdom.Server.Core;
 using Playerdom.Shared;
 using Playerdom.Shared.Models;
 using Playerdom.Shared.Objects;
 using Playerdom.Shared.Services;
 
 namespace Playerdom.Server.Core
+
 {
     public sealed class ServerClient : IDisposable
     {
@@ -31,7 +31,7 @@ namespace Playerdom.Server.Core
         readonly CerasSerializer _receiveCeras;
         readonly CerasSerializer _fileCeras;
 
-        public ulong? UserID { get; set; }
+        public long? UserID { get; set; }
 
         public string EndPointString => _tcpClient.Client.RemoteEndPoint.ToString();
 
@@ -42,11 +42,12 @@ namespace Playerdom.Server.Core
         public bool NeedsAllInfo { get; set; } = true;
 
         public KeyboardState InputState { get; set; }
+        public string _nickName { get; private set; }
 
         public ServerClient(TcpClient tcpClient)
         {
 
-            if(ldb == null)
+            if (ldb == null)
             {
                 ldb = new LocalDatabase(Environment.CurrentDirectory);
             }
@@ -54,9 +55,9 @@ namespace Playerdom.Server.Core
             _tcpClient = tcpClient;
             _netStream = tcpClient.GetStream();
 
-            _sendCeras = new CerasSerializer(PlayerdomCerasSettings.config);
-            _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.config);
-            _fileCeras = new CerasSerializer(PlayerdomCerasSettings.config);
+            _sendCeras = new CerasSerializer(PlayerdomCerasSettings.Config);
+            _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.Config);
+            _fileCeras = new CerasSerializer(PlayerdomCerasSettings.Config);
 
             Log("Player Joined");
             //TODO: Parse dates into shorter HH:mm formats.
@@ -86,9 +87,9 @@ namespace Playerdom.Server.Core
                 loadedPlayer = _fileCeras.Deserialize<Player>(File.ReadAllBytes(Path.Combine(Environment.CurrentDirectory, "Players", UserID.Value + ".bin")));
                 Log("Loaded Player Profile");
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                loadedPlayer = new Player(MapService.GenerateSpawnPoint(Program.level), new Vector2(Tile.SIZE_X, Tile.SIZE_Y), displayName: "Player");
+                loadedPlayer = new Player(MapService.GenerateSpawnPoint(Program.level), new Vector2(Tile.SizeX, Tile.SizeY), displayName: "Player");
 
 
                 File.WriteAllBytes(Path.Combine(Environment.CurrentDirectory, "Players", UserID.Value + ".bin"), _fileCeras.Serialize(loadedPlayer));
@@ -126,7 +127,7 @@ namespace Playerdom.Server.Core
 
         public void SavePlayerStats()
         {
-            if(UserID != null)
+            if (UserID != null)
                 File.WriteAllBytes(Path.Combine(Environment.CurrentDirectory, "Players", UserID.Value + ".bin"), _fileCeras.Serialize(Program.level.gameObjects[FocusedObjectID] as Player));
         }
 
@@ -139,7 +140,7 @@ namespace Playerdom.Server.Core
                 {
                     try
                     {
-                        if(isLoggedIn)
+                        if (isLoggedIn)
                         {
                             if (NeedsAllInfo)
                             {
@@ -243,7 +244,7 @@ namespace Playerdom.Server.Core
                     }
                     break;
                 case Guid token:
-                    if(!isLoggedIn)
+                    if (!isLoggedIn)
                     {
                         Guid newToken = Guid.NewGuid();
                         long? potentialID = ldb.GetPlayerID(token);
@@ -258,6 +259,7 @@ namespace Playerdom.Server.Core
                         }
                         Send(newToken);
                     }
+                    break;
                 default:
                     throw new Exception("Unknown object type");
             }

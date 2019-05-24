@@ -49,8 +49,8 @@ namespace Playerdom.Shared.Models
 
     public struct Tile
     {
-        public const uint SIZE_X = 128;
-        public const uint SIZE_Y = 128;
+        public const uint SizeX = 128;
+        public const uint SizeY = 128;
 
         public ushort typeID { get; set; } //Determines default properties
         public byte variantID { get; set; }

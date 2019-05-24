@@ -55,7 +55,7 @@ namespace Playerdom.Shared.Objects
                     if (o.Value.GetType() == typeof(Player))
                     {
                         Vector2 distance = Distance(o.Value);
-                        if (Math.Abs(distance.X) <= Tile.SIZE_X * 4 || Math.Abs(distance.Y) <= Tile.SIZE_Y * 4)
+                        if (Math.Abs(distance.X) <= Tile.SizeX * 4 || Math.Abs(distance.Y) <= Tile.SizeY * 4)
                         {
                             Task.Run(() => DisplayDialogAsync("Hello " + o.Value.DisplayName + "!", 3));
                         }

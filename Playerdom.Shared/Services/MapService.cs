@@ -23,9 +23,9 @@ namespace Playerdom.Shared.Services
 
             Random r = new Random(DateTime.Now.Millisecond);
 
-            m.spawnTileLocation = new Point(r.Next(0, (int)Map.SIZE_X), r.Next(0, (int)Map.SIZE_Y));
+            m.spawnTileLocation = new Point(r.Next(0, (int)Map.SizeX), r.Next(0, (int)Map.SizeY));
 
-            for (int y = 0; y < Map.SIZE_Y; y++)
+            for (int y = 0; y < Map.SizeY; y++)
             {
                 for (int x = 0; x < Map.SizeX; x++)
                 {
@@ -99,14 +99,14 @@ namespace Playerdom.Shared.Services
 
             for (int i = 0; i < numRandomEnemies; i++)
             {
-                m.gameObjects.TryAdd(Guid.NewGuid(), new Enemy(new Point(r.Next(0, (int)Map.SizeX - 1) * (int)Tile.SIZE_X, r.Next(0, (int)Map.SizeY - 1) * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
+                m.gameObjects.TryAdd(Guid.NewGuid(), new Enemy(new Point(r.Next(0, (int)Map.SizeX - 1) * (int)Tile.SizeX, r.Next(0, (int)Map.SizeY - 1) * (int)Tile.SizeY), new Vector2(Tile.SizeX, Tile.SizeY)));
             }
 
-            m.gameObjects.TryAdd(Guid.NewGuid(), new Townsman(new Point(12 * (int)Tile.SIZE_X, 12 * (int)Tile.SIZE_Y), new Vector2(Tile.SIZE_X, Tile.SIZE_Y), money: (decimal)5.0));
+            m.gameObjects.TryAdd(Guid.NewGuid(), new Townsman(new Point(12 * (int)Tile.SizeX, 12 * (int)Tile.SizeY), new Vector2(Tile.SizeX, Tile.SizeY), money: (decimal)5.0));
 
             Point endToStartAt = endPoints[r.Next(0, endPoints.Count - 1)];
-            endToStartAt.X *= (int)Tile.SIZE_X;
-            endToStartAt.Y *= (int)Tile.SIZE_Y;
+            endToStartAt.X *= (int)Tile.SizeX;
+            endToStartAt.Y *= (int)Tile.SizeY;
 
             return m;
         }
@@ -213,7 +213,7 @@ namespace Playerdom.Shared.Services
             int numEnemies = r.Next(0, 7);
 
             for (int i = 0; i < numEnemies; i++)
-                m.gameObjects.TryAdd(Guid.NewGuid(), new Enemy(new Point((int)((position.X + r.Next(1, (int)sizeX - 1)) * Tile.SIZE_X), (int)((position.Y + r.Next(1, (int)sizeY - 1)) * Tile.SIZE_Y)), new Vector2(Tile.SIZE_X, Tile.SIZE_Y)));
+                m.gameObjects.TryAdd(Guid.NewGuid(), new Enemy(new Point((int)((position.X + r.Next(1, (int)sizeX - 1)) * Tile.SizeX), (int)((position.Y + r.Next(1, (int)sizeY - 1)) * Tile.SizeY)), new Vector2(Tile.SizeX, Tile.SizeY)));
 
         }
 
@@ -457,14 +457,14 @@ namespace Playerdom.Shared.Services
         {
             Random r = new Random();
 
-            Point spawnPoint = new Point(m.spawnTileLocation.X * (int)Tile.SIZE_X + r.Next((int)Tile.SIZE_X * -5, (int)Tile.SIZE_X * 5), m.spawnTileLocation.Y * (int)Tile.SIZE_Y + r.Next((int)Tile.SIZE_Y * -5, (int)Tile.SIZE_Y * 5));
+            Point spawnPoint = new Point(m.spawnTileLocation.X * (int)Tile.SizeX + r.Next((int)Tile.SizeX * -5, (int)Tile.SizeX * 5), m.spawnTileLocation.Y * (int)Tile.SizeY + r.Next((int)Tile.SizeY * -5, (int)Tile.SizeY * 5));
 
             if (spawnPoint.X < 0) spawnPoint.X = 0;
-            else if (spawnPoint.X > (Map.SIZE_X - 1) * Tile.SIZE_X) spawnPoint.X = (int)((Map.SIZE_X - 1) * Tile.SIZE_X);
+            else if (spawnPoint.X > (Map.SizeX - 1) * Tile.SizeX) spawnPoint.X = (int)((Map.SizeX - 1) * Tile.SizeX);
 
 
             if (spawnPoint.Y < 0) spawnPoint.Y = 0;
-            else if (spawnPoint.Y > (Map.SIZE_Y - 1) * Tile.SIZE_Y) spawnPoint.Y = (int)((Map.SIZE_Y - 1) * Tile.SIZE_Y);
+            else if (spawnPoint.Y > (Map.SizeY - 1) * Tile.SizeY) spawnPoint.Y = (int)((Map.SizeY - 1) * Tile.SizeY);
 
             return spawnPoint;
         }

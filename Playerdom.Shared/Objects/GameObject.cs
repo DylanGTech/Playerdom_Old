@@ -107,7 +107,7 @@ namespace Playerdom.Shared.Objects
         public virtual void Update(GameTime time, Map map, KeyboardState ks, Guid objectGuid)
         {
             if (ObjectTalkingTo == null) return;
-            if (!map.gameObjects.TryGetValue(ObjectTalkingTo.Value, out GameObject go) || Math.Abs(Distance(go).Length()) > Tile.SIZE_X * 3)
+            if (!map.gameObjects.TryGetValue(ObjectTalkingTo.Value, out GameObject go) || Math.Abs(Distance(go).Length()) > Tile.SizeX * 3)
                 ObjectTalkingTo = null;
 
         }
@@ -163,10 +163,10 @@ namespace Playerdom.Shared.Objects
         {
             Point newPosition = new Point(Position.X + xOffset, Position.Y + yOffset);
 
-            if (newPosition.X > Map.SizeX * Tile.SIZE_X) newPosition.X = (int)(Map.SizeX * Tile.SIZE_X - Size.X);
+            if (newPosition.X > Map.SizeX * Tile.SizeX) newPosition.X = (int)(Map.SizeX * Tile.SizeX - Size.X);
             else if (newPosition.X < 0) newPosition.X = 0;
 
-            if (newPosition.Y > Map.SizeY * Tile.SIZE_Y) newPosition.Y = (int)(Map.SizeY * Tile.SIZE_Y - Size.Y);
+            if (newPosition.Y > Map.SizeY * Tile.SizeY) newPosition.Y = (int)(Map.SizeY * Tile.SizeY - Size.Y);
             else if (newPosition.Y < 0) newPosition.Y = 0;
 
             Position = newPosition;

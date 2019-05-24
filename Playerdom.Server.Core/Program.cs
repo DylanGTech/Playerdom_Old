@@ -15,7 +15,6 @@ using Playerdom.Shared.Models;
 using Playerdom.Shared.Objects;
 using Playerdom.Shared.Services;
 
-//Wrong namespace
 namespace Playerdom.Server.Core
 {
     public sealed class Program
@@ -49,7 +48,8 @@ namespace Playerdom.Server.Core
             {
                 foreach (var (_, value) in Clients)
                 {
-                    if (!value.IsInitialized)
+                    //if (!value.IsInitialized) does not exist anywhere?
+                    if (!value.isLoggedIn)
                     {
                         value.InitializePlayer();
                     }

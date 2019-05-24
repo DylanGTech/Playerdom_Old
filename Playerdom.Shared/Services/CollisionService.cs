@@ -11,10 +11,10 @@ namespace Playerdom.Shared.Services
     {
         public static void MoveWithTileCollision(GameObject gameObject, Map map, Vector2 velocity)
         {
-            int top = (int)(gameObject.Position.Y / Tile.SIZE_Y) - 1;
-            int bottom = top + (int)(gameObject.Size.Y / Tile.SIZE_Y) + 1;
-            int left = (int)(gameObject.Position.X / Tile.SIZE_X) - 1;
-            int right = left + (int)(gameObject.Size.X / Tile.SIZE_X) + 1;
+            int top = (int)(gameObject.Position.Y / Tile.SizeY) - 1;
+            int bottom = top + (int)(gameObject.Size.Y / Tile.SizeY) + 1;
+            int left = (int)(gameObject.Position.X / Tile.SizeX) - 1;
+            int right = left + (int)(gameObject.Size.X / Tile.SizeX) + 1;
 
             if (top < 0) top = 0;
             if (left < 0) left = 0;
@@ -47,13 +47,13 @@ namespace Playerdom.Shared.Services
                     Rectangle newBounds = gameObject.BoundingBox;
 
                     newBounds.Offset(velocity.X, velocity.Y);
-                    Vector2 depth = GetIntersectionDepth(newBounds, new Rectangle(x * (int)Tile.SIZE_X, y * (int)Tile.SIZE_Y, (int)Tile.SIZE_X, (int)Tile.SIZE_Y));
+                    Vector2 depth = GetIntersectionDepth(newBounds, new Rectangle(x * (int)Tile.SizeX, y * (int)Tile.SizeY, (int)Tile.SizeX, (int)Tile.SizeY));
 
                     if (depth == Vector2.Zero || gameObject.IsHalted) continue;
-                    if (depth.X != 0 && velocity.X != 0 && Math.Abs(gameObject.Position.X - x * (int)Tile.SIZE_X) > Math.Abs(gameObject.Position.Y - y * (int)Tile.SIZE_Y))
+                    if (depth.X != 0 && velocity.X != 0 && Math.Abs(gameObject.Position.X - x * (int)Tile.SizeX) > Math.Abs(gameObject.Position.Y - y * (int)Tile.SizeY))
                         velocity.X += depth.X;
 
-                    if (depth.Y != 0 && velocity.Y != 0 && Math.Abs(gameObject.Position.X - x * (int)Tile.SIZE_X) < Math.Abs(gameObject.Position.Y - y * (int)Tile.SIZE_Y))
+                    if (depth.Y != 0 && velocity.Y != 0 && Math.Abs(gameObject.Position.X - x * (int)Tile.SizeX) < Math.Abs(gameObject.Position.Y - y * (int)Tile.SizeY))
                         velocity.Y += depth.Y;
                 }
             }
@@ -63,10 +63,10 @@ namespace Playerdom.Shared.Services
 
         public static void MoveWithTileCollision(Entity gameEntity, Map map, Vector2 velocity)
         {
-            int top = (int)(gameEntity.Position.Y / Tile.SIZE_Y) - 1;
-            int bottom = top + (int)(gameEntity.Size.Y / Tile.SIZE_Y) + 1;
-            int left = (int)(gameEntity.Position.X / Tile.SIZE_X) - 1;
-            int right = left + (int)(gameEntity.Size.X / Tile.SIZE_X) + 1;
+            int top = (int)(gameEntity.Position.Y / Tile.SizeY) - 1;
+            int bottom = top + (int)(gameEntity.Size.Y / Tile.SizeY) + 1;
+            int left = (int)(gameEntity.Position.X / Tile.SizeX) - 1;
+            int right = left + (int)(gameEntity.Size.X / Tile.SizeX) + 1;
 
             if (top < 0) top = 0;
             if (left < 0) left = 0;
@@ -82,7 +82,7 @@ namespace Playerdom.Shared.Services
                     Rectangle newBounds = gameEntity.BoundingBox;
 
                     newBounds.Offset(velocity.X, velocity.Y);
-                    Vector2 depth = GetIntersectionDepth(newBounds, new Rectangle(x * (int)Tile.SIZE_X, y * (int)Tile.SIZE_Y, (int)Tile.SIZE_X, (int)Tile.SIZE_Y));
+                    Vector2 depth = GetIntersectionDepth(newBounds, new Rectangle(x * (int)Tile.SizeX, y * (int)Tile.SizeY, (int)Tile.SizeX, (int)Tile.SizeY));
 
                     if (gameEntity.GetType() == typeof(Bullet) && depth.X != 0 && depth.Y != 0)
                     {
@@ -90,9 +90,9 @@ namespace Playerdom.Shared.Services
                     }
                     else if (depth != Vector2.Zero && !gameEntity.IsHalted)
                     {
-                        if (depth.X != 0 && velocity.X != 0 && Math.Abs(gameEntity.Position.X - x * (int)Tile.SIZE_X) > Math.Abs(gameEntity.Position.Y - y * (int)Tile.SIZE_Y))
+                        if (depth.X != 0 && velocity.X != 0 && Math.Abs(gameEntity.Position.X - x * (int)Tile.SizeX) > Math.Abs(gameEntity.Position.Y - y * (int)Tile.SizeY))
                             velocity.X += depth.X;
-                        if (depth.Y != 0 && velocity.Y != 0 && Math.Abs(gameEntity.Position.X - x * (int)Tile.SIZE_X) < Math.Abs(gameEntity.Position.Y - y * (int)Tile.SIZE_Y))
+                        if (depth.Y != 0 && velocity.Y != 0 && Math.Abs(gameEntity.Position.X - x * (int)Tile.SizeX) < Math.Abs(gameEntity.Position.Y - y * (int)Tile.SizeY))
                             velocity.Y += depth.Y;
                     }
                 }

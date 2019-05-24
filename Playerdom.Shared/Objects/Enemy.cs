@@ -53,7 +53,7 @@ namespace Playerdom.Shared.Objects
             {
                 if (o.Value.GetType() != typeof(Player)) continue;
                 var (x, y) = Distance(o.Value);
-                if (Math.Abs(x) <= Tile.SIZE_X * 16 || Math.Abs(y) <= Tile.SIZE_Y * 16)
+                if (Math.Abs(x) <= Tile.SizeX * 16 || Math.Abs(y) <= Tile.SizeY * 16)
                 {
                     double angle = Math.Atan2(y, x);
 

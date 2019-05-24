@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Playerdom.Shared.Models;
+using Playerdom.Shared.Services;
 
 namespace Playerdom.Shared.Objects
 {
@@ -43,7 +44,7 @@ namespace Playerdom.Shared.Objects
             if (o.GetType() != typeof(Player))
                 throw new Exception("Type to update must be the same type as the original");
 
-            _bulletTimer = ((Player) o)._bulletTimer;
+            _bulletTimer = ((Player)o)._bulletTimer;
 
             base.UpdateStats(o);
         }
@@ -98,7 +99,7 @@ namespace Playerdom.Shared.Objects
                 if (ObjectTalkingTo != null && map.gameObjects.TryGetValue(ObjectTalkingTo.Value, out GameObject ott))
                 {
                     var (x, y) = Distance(ott);
-                    if (!(Math.Abs(x) <= Tile.SIZE_X * 2) && !(Math.Abs(y) <= Tile.SIZE_Y * 2))
+                    if (!(Math.Abs(x) <= Tile.SizeX * 2) && !(Math.Abs(y) <= Tile.SizeY * 2))
                     {
                         ott.ObjectTalkingTo = null;
                         ObjectTalkingTo = null;
@@ -109,7 +110,7 @@ namespace Playerdom.Shared.Objects
 
             if (ks.IsKeyDown(Keys.F) && DateTime.Now >= _bulletTimer)
             {
-                if(!(FacingDirectionX == DirectionX.Center && FacingDirectionY == DirectionY.Center))
+                if (!(FacingDirectionX == DirectionX.Center && FacingDirectionY == DirectionY.Center))
                 {
                     Vector2 trajectory = new Vector2(0);
                     Point position = new Point(Position.X + (int)Size.X / 2 - 16, Position.Y + (int)Size.Y / 2 - 16);
@@ -135,25 +136,25 @@ namespace Playerdom.Shared.Objects
                             position.Y += (int)Size.Y;
                             break;
                     }
-                    
+
                     map.gameEntities.TryAdd(Guid.NewGuid(), new Bullet(position, new Vector2(32, 32), trajectory, this));
                     _bulletTimer = DateTime.Now.AddSeconds(0.85);
                 }
             }
-            
-            if(ks.IsKeyDown(Keys.T) && !IsTalking)
+
+            if (ks.IsKeyDown(Keys.T) && !IsTalking)
             {
                 bool talkingToObject = false;
-                foreach(KeyValuePair<Guid, GameObject> go1 in map.gameObjects)
+                foreach (KeyValuePair<Guid, GameObject> go1 in map.gameObjects)
                 {
                     if (go1.Key == objectGuid || go1.Value.IsTalking ||
                         go1.Value.ObjectTalkingTo != null && go1.Value.ObjectTalkingTo != objectGuid) continue;
                     var (x, y) = Distance(go1.Value);
-                    if (!(Math.Abs(x) <= Tile.SIZE_X * 2) || !(Math.Abs(y) <= Tile.SIZE_Y * 2)) continue;
+                    if (!(Math.Abs(x) <= Tile.SizeX * 2) || !(Math.Abs(y) <= Tile.SizeY * 2)) continue;
                     talkingToObject = true;
                     go1.Value.StartConversation(new KeyValuePair<Guid, GameObject>(objectGuid, this), go1.Key);
                 }
-                if(!talkingToObject)
+                if (!talkingToObject)
                 {
                     ObjectTalkingTo = null;
                     string text;
@@ -193,19 +194,19 @@ namespace Playerdom.Shared.Objects
                 }
             }
 
-            if(ks.IsKeyDown(Keys.Q) && DateTime.Now > _dropTimer)
+            if (ks.IsKeyDown(Keys.Q) && DateTime.Now > _dropTimer)
             {
-                if(Money >= 1)
+                if (Money >= 1)
                 {
                     map.gameEntities.TryAdd(Guid.NewGuid(), new MoneyDrop(new Point((int)(Position.X + Size.X / 2), (int)(Position.Y + Size.Y / 2)), new Vector2(32, 32), 1, this));
                     Money -= 1;
                 }
-                else if(Money > 0)
+                else if (Money > 0)
                 {
                     map.gameEntities.TryAdd(Guid.NewGuid(), new MoneyDrop(Position, new Vector2(32, 32), Money, this));
                     Money = 0;
                 }
-                else if(!IsTalking)
+                else if (!IsTalking)
                     Task.Run(async () => await DisplayDialogAsync("Oh no! I'm out of money!"));
                 _dropTimer = DateTime.Now.AddSeconds(0.50);
             }
