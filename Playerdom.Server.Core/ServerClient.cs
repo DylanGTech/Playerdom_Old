@@ -20,7 +20,7 @@ namespace Playerdom.Server.Core
     public sealed class ServerClient : IDisposable
     {
 
-        public bool isLoggedIn { get; set; } = false;
+        public bool IsLoggedIn { get; set; } = false;
 
         public static LocalDatabase ldb = null;
 
@@ -42,7 +42,7 @@ namespace Playerdom.Server.Core
         public bool NeedsAllInfo { get; set; } = true;
 
         public KeyboardState InputState { get; set; }
-        public string _nickName { get; private set; }
+        public string NickName { get; private set; }
 
         public ServerClient(TcpClient tcpClient)
         {
@@ -77,7 +77,7 @@ namespace Playerdom.Server.Core
         public void InitializePlayer()
         {
 
-            Player loadedPlayer = null;
+            Player loadedPlayer;
 
             if (!Directory.Exists(Path.Combine(Environment.CurrentDirectory, "Players")))
                 Directory.CreateDirectory(Path.Combine(Environment.CurrentDirectory, "Players"));
@@ -140,7 +140,7 @@ namespace Playerdom.Server.Core
                 {
                     try
                     {
-                        if (isLoggedIn)
+                        if (IsLoggedIn)
                         {
                             if (NeedsAllInfo)
                             {
@@ -244,7 +244,7 @@ namespace Playerdom.Server.Core
                     }
                     break;
                 case Guid token:
-                    if (!isLoggedIn)
+                    if (!IsLoggedIn)
                     {
                         Guid newToken = Guid.NewGuid();
                         long? potentialID = ldb.GetPlayerID(token);
@@ -300,9 +300,9 @@ namespace Playerdom.Server.Core
                 //throw new NullReferenceException("User doesn't have an ID");
                 return null;
 
-            if (_nickName == null)
+            if (NickName == null)
                 return "Player " + UserID.Value;
-            return _nickName;
+            return NickName;
         }
 
         public void Dispose()
@@ -318,10 +318,10 @@ namespace Playerdom.Server.Core
             string[] args = command.Split(' ');
 
             if (args[0] != "nick" || args.Length != 2 || args[1].Length > 48) return;
-            if (Program.Clients.Count(c => c.Value._nickName == args[1]) != 0) return;
+            if (Program.Clients.Count(c => c.Value.NickName == args[1]) != 0) return;
             string oldName = GetUsername();
 
-            _nickName = args[1];
+            NickName = args[1];
 
             Program.level.gameObjects[FocusedObjectID].SetDisplayName(args[1]);
 
@@ -329,7 +329,7 @@ namespace Playerdom.Server.Core
                 Program.ChatLog.Enqueue(new ChatMessage
                 {
                     message =
-                        $"{DateTime.Now:HH:mm} [Server]: {oldName} is now known as {_nickName}",
+                        $"{DateTime.Now:HH:mm} [Server]: {oldName} is now known as {NickName}",
                     senderID = UserID.Value,
                     timeSent = DateTime.Now,
                     textColor = Color.Yellow

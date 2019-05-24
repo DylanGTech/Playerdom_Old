@@ -10,9 +10,6 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
-using System.Timers;
-using Timer = System.Timers.Timer;
-using System.Net;
 using System.Reflection;
 using Ceras;
 using System.Net.Sockets;
@@ -36,7 +33,7 @@ namespace Playerdom.Shared
     /// </summary>
     public class GameLevel : Game
     {
-        GraphicsDeviceManager graphics;
+        //readonly GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         RenderTarget2D target;
 
@@ -64,7 +61,8 @@ namespace Playerdom.Shared
 
         public static List<ChatMessage> chatLog = new List<ChatMessage>();
         public static Map level;
-        static Assembly asm = Assembly.GetEntryAssembly();
+        readonly static Assembly asm = Assembly.GetEntryAssembly();
+        private readonly GraphicsDeviceManager graphics;
         SpriteFont font;
         SpriteFont font2;
 
@@ -244,135 +242,6 @@ namespace Playerdom.Shared
                                     case '0':
                                         key = ')';
                                         break;
-                                        if (ks.IsKeyUp(Keys.LeftShift) && ks.IsKeyUp(Keys.RightShift))
-                                        {
-                                            if (char.IsLetter(key))
-                                                key = char.ToLower(key);
-                                            else
-                                            {
-                                                //switch (e.Character)
-                                                //{
-                                                //    case Keys.OemBackslash:
-                                                //        key = '\\';
-                                                //        break;
-
-                                                //    case Keys.OemCloseBrackets:
-                                                //        key = ']';
-                                                //        break;
-
-                                                //    case Keys.OemComma:
-                                                //        key = ',';
-                                                //        break;
-
-                                                //    case Keys.OemMinus:
-                                                //        key = '-';
-                                                //        break;
-
-                                                //    case Keys.OemPeriod:
-                                                //        key = '.';
-                                                //        break;
-
-                                                //    case Keys.OemPipe:
-                                                //        key = '|';
-                                                //        break;
-
-                                                //    case Keys.OemPlus:
-                                                //        key = '+';
-                                                //        break;
-
-                                                //    case Keys.OemQuestion:
-                                                //        key = '?';
-                                                //        break;
-
-                                                //    case Keys.OemQuotes:
-                                                //        key = '\"';
-                                                //        break;
-
-                                                //    case Keys.OemSemicolon:
-                                                //        key = ';';
-                                                //        break;
-
-                                                //    case Keys.OemTilde:
-                                                //        key = '~';
-                                                //        break;
-                                                //}
-                                            }
-                                        }
-                                        else if (char.IsDigit(key))
-                                            switch (key)
-                                            {
-                                                case '0':
-                                                    key = ')';
-                                                    break;
-
-                                                case '1':
-                                                    key = '!';
-                                                    break;
-
-                                                case '2':
-                                                    key = '@';
-                                                    break;
-
-                                                case '3':
-                                                    key = '#';
-                                                    break;
-
-                                                case '4':
-                                                    key = '$';
-                                                    break;
-
-                                                case '5':
-                                                    key = '%';
-                                                    break;
-
-                                                case '6':
-                                                    key = '^';
-                                                    break;
-
-                                                case '7':
-                                                    key = '&';
-                                                    break;
-
-                                                case '8':
-                                                    key = '*';
-                                                    break;
-
-                                                case '9':
-                                                    key = '(';
-                                                    break;
-                                            }
-                                        else
-                                        {
-                                            switch (e.Character)
-                                            {
-                                                case '\\':
-                                                    key = '|';
-                                                    break;
-
-                                                case ']':
-                                                    key = '}';
-                                                    break;
-
-                                                case ',':
-                                                    key = '<';
-                                                    break;
-
-                                                case '-':
-                                                    key = '_';
-                                                    break;
-
-                                                case '.':
-                                                    key = '>';
-                                                    break;
-
-                                                case ';':
-                                                    key = ':';
-                                                    break;
-                                            }
-                                        }
-
-
-                                        typedMessage += key;
                                 }
                         }
                     };

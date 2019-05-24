@@ -28,6 +28,8 @@ namespace Playerdom.Shared
             Config.KnownTypes.Add(typeof(Entity));
             Config.KnownTypes.Add(typeof(Bullet));
             Config.KnownTypes.Add(typeof(MoneyDrop));
+            Config.KnownTypes.Add(typeof(Map));
+            Config.KnownTypes.Add(typeof(MapService));
 
             Config.KnownTypes.Add(typeof(ChatMessage));
             Config.KnownTypes.Add(typeof(List<ChatMessage>));
@@ -58,7 +60,7 @@ namespace Playerdom.Shared
             Config.KnownTypes.Add(typeof(ConcurrentDictionary<Guid, Entity>));
 
             Config.KnownTypes.Add(typeof(KeyboardState));
-            
+
             Config.ConfigType<Player>().ConstructBy(typeof(Player).GetConstructors()[0]);
             Config.ConfigType<Enemy>().ConstructBy(typeof(Enemy).GetConstructors()[0]);
             Config.ConfigType<Townsman>().ConstructBy(typeof(Townsman).GetConstructors()[0]);

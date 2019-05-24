@@ -1,6 +1,6 @@
 ﻿using Playerdom.Shared;
 
-namespace Playerdom.Client
+namespace Playerdom.UWP
 {
     /// <summary>
     /// The main class.

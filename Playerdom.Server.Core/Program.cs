@@ -49,7 +49,7 @@ namespace Playerdom.Server.Core
                 foreach (var (_, value) in Clients)
                 {
                     //if (!value.IsInitialized) does not exist anywhere?
-                    if (!value.isLoggedIn)
+                    if (!value.IsLoggedIn)
                     {
                         value.InitializePlayer();
                     }
