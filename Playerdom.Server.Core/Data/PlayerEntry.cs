@@ -9,7 +9,13 @@ namespace Playerdom.Server.Core.Data
     {
         [PrimaryKey, AutoIncrement]
         public long Id { get; set; } //SQLite doesn't support ulong
+
         //[PrimaryKey] //Multiple primary keys not supported in this library
         public Guid Token { get; set; }
+
+        public bool IsAdmin { get; set; }
+
+        [Indexed]
+        public string Username { get; set; }
     }
 }

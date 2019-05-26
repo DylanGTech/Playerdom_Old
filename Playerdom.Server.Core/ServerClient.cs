@@ -10,6 +10,7 @@ using Ceras.Helpers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Playerdom.Server.Core;
+using Playerdom.Server.Core.Data;
 using Playerdom.Shared;
 using Playerdom.Shared.Models;
 using Playerdom.Shared.Objects;
@@ -20,10 +21,9 @@ namespace Playerdom.Server.Core
     public sealed class ServerClient : IDisposable
     {
 
-        public bool isLoggedIn { get; set; } = false;
+        public bool IsLoggedIn { get; set; } = false;
 
         public static LocalDatabase ldb = null;
-
 
         readonly TcpClient _tcpClient;
         readonly NetworkStream _netStream;
@@ -31,7 +31,10 @@ namespace Playerdom.Server.Core
         readonly CerasSerializer _receiveCeras;
         readonly CerasSerializer _fileCeras;
 
-        public ulong? UserID { get; set; }
+        public long? UserID { get; set; }
+
+
+
 
         public string EndPointString => _tcpClient.Client.RemoteEndPoint.ToString();
 
@@ -54,13 +57,13 @@ namespace Playerdom.Server.Core
             _tcpClient = tcpClient;
             _netStream = tcpClient.GetStream();
 
-            _sendCeras = new CerasSerializer(PlayerdomCerasSettings.config);
-            _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.config);
-            _fileCeras = new CerasSerializer(PlayerdomCerasSettings.config);
+            _sendCeras = new CerasSerializer(PlayerdomCerasSettings.Config);
+            _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.Config);
+            _fileCeras = new CerasSerializer(PlayerdomCerasSettings.Config);
 
             Log("Player Joined");
             //TODO: Parse dates into shorter HH:mm formats.
-            Program.ChatLog.Enqueue(new ChatMessage { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Joined ", timeSent = DateTime.Now, textColor = Color.Orange });
+            Program.ChatLog.Enqueue(new ChatMessage { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Joined ", timeSent = DateTime.Now, textColor = Color.Red });
 
             FocusedObjectID = Guid.NewGuid();
             InputState = new KeyboardState();
@@ -75,7 +78,6 @@ namespace Playerdom.Server.Core
 
         public void InitializePlayer()
         {
-
             Player loadedPlayer = null;
 
             if (!Directory.Exists(Path.Combine(Environment.CurrentDirectory, "Players")))
@@ -94,9 +96,6 @@ namespace Playerdom.Server.Core
                 File.WriteAllBytes(Path.Combine(Environment.CurrentDirectory, "Players", UserID.Value + ".bin"), _fileCeras.Serialize(loadedPlayer));
                 Log("Created Player Profile");
             }
-
-
-
 
             Program.level.gameObjects.TryAdd(FocusedObjectID, loadedPlayer);
         }
@@ -139,7 +138,7 @@ namespace Playerdom.Server.Core
                 {
                     try
                     {
-                        if(isLoggedIn)
+                        if(IsLoggedIn)
                         {
                             if (NeedsAllInfo)
                             {
@@ -223,34 +222,39 @@ namespace Playerdom.Server.Core
                             if (UserID != null)
                             {
 
-                                var pairValue = pair.Value;
+                                string pairValue = pair.Value;
+                                PlayerEntry current = ldb.GetPlayer(UserID.Value);
+
+
+
                                 if (pairValue.Length > 256)
+
                                     pairValue = pairValue.Substring(0, 256);
 
                                 if (pairValue[0] == '/')
-                                    ProcessCommand(pairValue);
+                                    ProcessCommand(pairValue, current.IsAdmin);
                                 else
                                     Program.ChatLog.Enqueue(new ChatMessage
                                     {
                                         message =
-                                            $"{DateTime.Now:HH:mm} [{GetUsername()}]: {pairValue}",
+                                            $"{DateTime.Now:HH:mm} [{current.Username}]: {pairValue}",
                                         senderID = UserID.Value,
                                         timeSent = DateTime.Now,
-                                        textColor = Color.White
+                                        textColor = (current.IsAdmin) ? Color.Gold : Color.White
                                     });
                             }
                             break;
                     }
                     break;
                 case Guid token:
-                    if(!isLoggedIn)
+                    if(!IsLoggedIn)
                     {
                         Guid newToken = Guid.NewGuid();
                         long? potentialID = ldb.GetPlayerID(token);
                         if (potentialID != null)
                         {
                             UserID = potentialID.Value;
-                            ldb.UpdatePlayerToken(UserID.Value, token);
+                            ldb.UpdatePlayerToken(UserID.Value, newToken);
                         }
                         else
                         {
@@ -258,6 +262,7 @@ namespace Playerdom.Server.Core
                         }
                         Send(newToken);
                     }
+                    break;
                 default:
                     throw new Exception("Unknown object type");
             }
@@ -290,36 +295,30 @@ namespace Playerdom.Server.Core
             logWriter.Dispose();
         }
 
-        public string GetUsername()
-        {
-            //TODO: Create System to retrieve a username or profile
-
-            if (UserID == null)
-                //throw new NullReferenceException("User doesn't have an ID");
-                return null;
-
-            if (_nickName == null)
-                return "Player " + UserID.Value;
-            return _nickName;
-        }
-
         public void Dispose()
         {
             _tcpClient.Close();
             _tcpClient.Dispose();
         }
 
-        private void ProcessCommand(string command)
+        private void ProcessCommand(string command, bool asAdministrator = false)
         {
             command = command.Substring(1);
 
             string[] args = command.Split(' ');
 
             if (args[0] != "nick" || args.Length != 2 || args[1].Length > 48) return;
-            if (Program.Clients.Count(c => c.Value._nickName == args[1]) != 0) return;
-            string oldName = GetUsername();
+            if (ldb.CheckUsernameExistance(args[1]) || UserID == null) return;
 
-            _nickName = args[1];
+            //Extremely basic username registration filter
+            //This prevents players from screwing up the new user registration
+            if (args[1].Length >= 6 && args[1].Substring(0, 6) == "Player") return;
+
+
+            string oldName = ldb.GetPlayer(UserID.Value).Username;
+
+
+            ldb.UpdatePlayerUsername(UserID.Value, args[1]);
 
             Program.level.gameObjects[FocusedObjectID].SetDisplayName(args[1]);
 
@@ -327,10 +326,10 @@ namespace Playerdom.Server.Core
                 Program.ChatLog.Enqueue(new ChatMessage
                 {
                     message =
-                        $"{DateTime.Now:HH:mm} [Server]: {oldName} is now known as {_nickName}",
+                        $"{DateTime.Now:HH:mm} [Server]: {oldName} is now known as {args[1]}",
                     senderID = UserID.Value,
                     timeSent = DateTime.Now,
-                    textColor = Color.Yellow
+                    textColor = Color.Red
                 });
         }
     }

@@ -49,8 +49,9 @@ namespace Playerdom.Server.Core
             {
                 foreach (var (_, value) in Clients)
                 {
-                    if (!value.IsInitialized)
+                    if (!value.IsLoggedIn && value.UserID != null)
                     {
+                        value.IsLoggedIn = true;
                         value.InitializePlayer();
                     }
 
@@ -66,7 +67,7 @@ namespace Playerdom.Server.Core
                     if (sc == null) continue;
                     ServerClient.Log("Player left");
                     level.gameObjects.TryRemove(sc.FocusedObjectID, out GameObject player);
-                    ChatLog.Enqueue(new ChatMessage() { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Left ", textColor = Color.Orange });
+                    ChatLog.Enqueue(new ChatMessage() { senderID = 0, message = DateTime.Now.ToString("HH:mm") + " [SERVER]: Player Left ", textColor = Color.Red });
                     sc.Dispose();
                 }
 

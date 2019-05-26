@@ -10,7 +10,7 @@ namespace Playerdom.Shared.Models
         public DateTime timeSent;
         public Color textColor;
 
-        public ChatMessage(ulong senderID, string message, DateTime timeSent, Color textColor)
+        public ChatMessage(long senderID, string message, DateTime timeSent, Color textColor)
         {
             this.senderID = senderID;
             this.message = message;

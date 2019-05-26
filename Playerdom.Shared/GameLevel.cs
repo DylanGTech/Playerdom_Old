@@ -230,20 +230,6 @@ namespace Playerdom.Shared
                         if (font2.Characters.Contains(e.Character))
                         {
                             char key = e.Character;
-
-                                        if (ks.IsKeyUp(Keys.LeftShift) && ks.IsKeyUp(Keys.RightShift))
-                                        {
-                                            if (char.IsLetter(key))
-                                                key = char.ToLower(key);
-                                        }
-                                        else if (char.IsDigit(key))
-                                            switch (key)
-                                            {
-                                                default:
-                                                    break;
-                                                case '0':
-                                                    key = ')';
-                                                    break;
                             if (ks.IsKeyUp(Keys.LeftShift) && ks.IsKeyUp(Keys.RightShift))
                             {
                                 if (char.IsLetter(key))
@@ -745,8 +731,9 @@ namespace Playerdom.Shared
 
         static async void ReceiveOutputAsync()
         {
-            CerasSerializer _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.config);
-            CerasSerializer _sendCeras = new CerasSerializer(PlayerdomCerasSettings.config);
+            CerasSerializer _receiveCeras = new CerasSerializer(PlayerdomCerasSettings.Config);
+            CerasSerializer _sendCeras = new CerasSerializer(PlayerdomCerasSettings.Config);
+            
 
 
             _sendCeras.WriteToStream(_netStream, securityToken);

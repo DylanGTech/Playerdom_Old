@@ -53,7 +53,7 @@ namespace Playerdom.Shared.Objects
         public bool IsTalking { get; protected set; }
 
         //[JsonIgnore]
-        protected string DialogText { get; set; }
+        public string DialogText { get; set; }
 
         public Rectangle BoundingBox => new Rectangle(Position.X, Position.Y, (int)Size.X, (int)Size.Y);
 

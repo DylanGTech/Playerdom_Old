@@ -42,13 +42,26 @@ namespace Playerdom.Server.Core
             return matches[0].Id;
         }
 
-        public Guid? GetPlayerToken(long id)
+        public PlayerEntry GetPlayer(long id)
         {
             List<PlayerEntry> matches = db.Query<PlayerEntry>("select * from PlayerEntry where Id = ?", id);
 
             if (matches == null || matches.Count == 0) return null;
 
-            return matches[0].Token;
+            return matches[0];
+        }
+
+        public bool CheckUsernameExistance(string username)
+        {
+            List<PlayerEntry> matches = db.Query<PlayerEntry>("select * from PlayerEntry where Username = ?", username);
+
+            if (matches.Count == 0) return false;
+            return true;
+        }
+
+        public void UpdatePlayerUsername(long id, string newUsername)
+        {
+            db.Execute("update PlayerEntry set Username = ? where id = ?", newUsername, id);
         }
 
         public void UpdatePlayerToken(long id, Guid newToken)
@@ -58,9 +71,20 @@ namespace Playerdom.Server.Core
 
         public long CreateNewPlayer(Guid token)
         {
-            db.Insert(new PlayerEntry() { Token = token }) ;
+            db.Insert(new PlayerEntry() { Token = token });
 
-            return GetPlayerID(token).Value;
+            long newId = GetPlayerID(token).Value;
+            UpdatePlayerUsername(newId, "Player" + newId);
+
+            return newId;
+        }
+        public bool? GetPlayerAdminStatus(long id)
+        {
+            List<bool> matches = db.Query<bool>("select IsAdmin from PlayerEntry where Id = ?", id);
+
+            if (matches == null || matches.Count == 0) return null;
+
+            return matches[0];
         }
 
 

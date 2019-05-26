@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Playerdom.Shared.Models;
+using Playerdom.Shared.Services;
 
 namespace Playerdom.Shared.Objects
 {
