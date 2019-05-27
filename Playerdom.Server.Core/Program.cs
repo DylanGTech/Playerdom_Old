@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using Ceras;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -62,9 +63,8 @@ namespace Playerdom.Server.Core
 
                 while (LeavingPlayers.TryDequeue(out string endpoint))
                 {
-                    Clients.TryRemove(endpoint, out ServerClient sc);
 
-                    sc.SavePlayerStats();
+                    Clients.TryRemove(endpoint, out ServerClient sc);
 
                     if (sc == null) continue;
                     ServerClient.Log("Player left");
@@ -140,8 +140,8 @@ namespace Playerdom.Server.Core
                 {
                     ChatLog.TryDequeue(out ChatMessage message);
                 }
-                // NEVER EVER EVER USE THREAD.SLEEP
-                Thread.Sleep(10);
+
+                Task.Delay(10).Wait();
             }
         }
 

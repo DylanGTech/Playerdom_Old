@@ -377,7 +377,7 @@ namespace Playerdom.Shared
                         }
                     }
 
-                    Thread.Sleep(15);
+                    Task.Delay(15).Wait();
                 }
 
             });
@@ -656,9 +656,11 @@ namespace Playerdom.Shared
 
         protected void DrawMap()
         {
+            Point positionSnapshot = focusedObject.Value.Position; //Take "snapshot" in the beginning. Drawing the map while it's changing causes choppy behavior
 
-            ushort YTilePosition = (ushort)(focusedObject.Value.Position.Y / Tile.SIZE_Y);
-            ushort XTilePosition = (ushort)(focusedObject.Value.Position.X / Tile.SIZE_X);
+
+            ushort YTilePosition = (ushort)(positionSnapshot.Y / Tile.SIZE_Y);
+            ushort XTilePosition = (ushort)(positionSnapshot.X / Tile.SIZE_X);
 
             int ymin = YTilePosition - VIEW_DISTANCE;
             int ymax = YTilePosition + VIEW_DISTANCE;
@@ -675,8 +677,8 @@ namespace Playerdom.Shared
             {
                 for (int x = xmin; x < xmax; x++)
                 {
-                    int positionX = (int)(x * Tile.SIZE_X - focusedObject.Value.Position.X + target.Width / 2 - focusedObject.Value.Size.X / 2);
-                    int positionY = (int)(y * Tile.SIZE_Y - focusedObject.Value.Position.Y + target.Height / 2 - focusedObject.Value.Size.Y / 2);
+                    int positionX = (int)(x * Tile.SIZE_X - positionSnapshot.X + target.Width / 2 - focusedObject.Value.Size.X / 2);
+                    int positionY = (int)(y * Tile.SIZE_Y - positionSnapshot.Y + target.Height / 2 - focusedObject.Value.Size.Y / 2);
 
                     if (level.tiles[x, y].typeID == 1)
                     {

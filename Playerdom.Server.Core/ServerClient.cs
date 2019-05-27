@@ -118,6 +118,8 @@ namespace Playerdom.Server.Core
                 {
                     if (!Program.LeavingPlayers.Contains(EndPointString))
                         Program.LeavingPlayers.Enqueue(EndPointString);
+
+                    SavePlayerStats();
                     LogServerException(e);
                 }
             });
@@ -191,10 +193,10 @@ namespace Playerdom.Server.Core
                         if (!Program.LeavingPlayers.Contains(EndPointString))
                             Program.LeavingPlayers.Enqueue(EndPointString);
 
+                        SavePlayerStats();
                         LogServerException(e);
                     }
-                    // NEVER USE THREAD.SLEEP
-                    Thread.Sleep(20);
+                    Task.Delay(20).Wait();
                 }
             });
         }
