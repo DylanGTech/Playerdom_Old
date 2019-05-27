@@ -64,6 +64,8 @@ namespace Playerdom.Server.Core
                 {
                     Clients.TryRemove(endpoint, out ServerClient sc);
 
+                    sc.SavePlayerStats();
+
                     if (sc == null) continue;
                     ServerClient.Log("Player left");
                     level.gameObjects.TryRemove(sc.FocusedObjectID, out GameObject player);
