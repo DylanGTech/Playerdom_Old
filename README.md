@@ -1,3 +1,7 @@
+### ***ARCHIVAL***
+6/30/2022 - Officially archived this project. It will no longer receive updates, and is instead used as a loose reference for Playerdom's modern remake (http://www.github.com/DylanGTech/Playerdom). Please use that instead.
+
+
 # Playerdom
 Proof-of-concept multiplayer RPG with advanced NPC AI and randomly-generated worlds.
 Stage: Classic
